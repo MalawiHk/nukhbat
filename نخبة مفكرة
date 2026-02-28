@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0118">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>نُخبة العقول</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#06010f;--bg2:#0e0524;--card:#150a38;--card2:#1e1050;
+--lav:#a855f7;--lav2:#7c3aed;--lav3:#c084fc;--lavbg:rgba(168,85,247,.1);
+--gold:#f59e0b;--goldL:#fde68a;--green:#10b981;--red:#ef4444;--blue:#3b82f6;
+--txt:#fff;--txt2:#ddd0ff;--txt3:#a090d0;
+--font:'Tajawal',system-ui,-apple-system,sans-serif;--radius:16px;--rSm:12px
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--font);-ms-overflow-style:none;scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0}
+body{display:flex;flex-direction:column}
+
+.screen{display:none;flex-direction:column;height:100%;overflow-y:auto;overflow-x:hidden;position:relative}
+.screen.active{display:flex}
+.screen::-webkit-scrollbar{display:none;width:0}
+.screen{-ms-overflow-style:none;scrollbar-width:none}
+
+.bg-stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-stars::before,.bg-stars::after{content:'';position:absolute;border-radius:50%;filter:blur(80px);opacity:.15}
+.bg-stars::before{width:400px;height:400px;background:var(--lav2);top:-100px;right:-100px;animation:floatOrb 12s ease-in-out infinite}
+.bg-stars::after{width:300px;height:300px;background:var(--gold);bottom:-50px;left:-100px;animation:floatOrb 15s ease-in-out infinite reverse}
+@keyframes floatOrb{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+
+.grad-text{background:linear-gradient(135deg,var(--lav3),var(--goldL));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.btn{border:none;border-radius:var(--rSm);padding:14px 24px;font-family:var(--font);font-weight:800;font-size:16px;cursor:pointer;-webkit-transition:all .2s;transition:all .2s;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;gap:8px;width:100%;position:relative;overflow:hidden}
+.btn-primary{background:linear-gradient(135deg,var(--lav2),#4f46e5);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,.4)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#f97316);color:#000;box-shadow:0 4px 20px rgba(245,158,11,.35)}
+.btn-ghost{background:transparent;color:var(--txt3);border:1px solid rgba(168,85,247,.2)}
+.btn-sm{padding:10px 16px;font-size:14px}
+
+.c{background:var(--card);border:1px solid rgba(168,85,247,.12);border-radius:var(--radius);padding:16px}
+.inp{width:100%;padding:14px 16px;background:var(--bg);border:2px solid rgba(168,85,247,.2);border-radius:var(--rSm);color:#fff;font-family:var(--font);font-size:16px;outline:none;-webkit-transition:border .2s;transition:border .2s}
+.inp:focus{border-color:var(--lav)}
+.inp::-webkit-input-placeholder{color:var(--txt3)}
+
+@keyframes fadeUp{from{opacity:0;-webkit-transform:translateY(20px);transform:translateY(20px)}to{opacity:1;-webkit-transform:none;transform:none}}
+@keyframes shake{0%,100%{-webkit-transform:translateX(0);transform:translateX(0)}20%{-webkit-transform:translateX(-8px);transform:translateX(-8px)}40%{-webkit-transform:translateX(8px);transform:translateX(8px)}60%{-webkit-transform:translateX(-4px);transform:translateX(-4px)}80%{-webkit-transform:translateX(4px);transform:translateX(4px)}}
+@keyframes bounce{0%{-webkit-transform:scale(.3);transform:scale(.3);opacity:0}50%{-webkit-transform:scale(1.08);transform:scale(1.08)}100%{-webkit-transform:scale(1);transform:scale(1);opacity:1}}
+@keyframes popIn{0%{-webkit-transform:scale(0);transform:scale(0);opacity:0}60%{-webkit-transform:scale(1.15);transform:scale(1.15)}100%{-webkit-transform:scale(1);transform:scale(1);opacity:1}}
+@keyframes spin{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}
+@keyframes confettiFall{0%{-webkit-transform:translateY(-10vh) rotate(0);transform:translateY(-10vh) rotate(0);opacity:1}100%{-webkit-transform:translateY(105vh) rotate(720deg);transform:translateY(105vh) rotate(720deg);opacity:0}}
+@keyframes timerPulse{0%,100%{-webkit-transform:scale(1);transform:scale(1)}50%{-webkit-transform:scale(1.15);transform:scale(1.15)}}
+
+.anim-up{-webkit-animation:fadeUp .5s ease-out both;animation:fadeUp .5s ease-out both}
+.anim-bounce{-webkit-animation:bounce .6s ease-out both;animation:bounce .6s ease-out both}
+.anim-pop{-webkit-animation:popIn .6s cubic-bezier(.17,.89,.32,1.28) both;animation:popIn .6s cubic-bezier(.17,.89,.32,1.28) both}
+.confetti-piece{position:fixed;width:10px;height:10px;top:-10px;z-index:999;-webkit-animation:confettiFall linear forwards;animation:confettiFall linear forwards;pointer-events:none}
+
+.pbar{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;width:100%}
+.pbar-fill{height:100%;border-radius:3px;-webkit-transition:width .4s ease;transition:width .4s ease;background:linear-gradient(90deg,var(--lav),var(--gold))}
+.timer-bar{height:4px;background:var(--card2);border-radius:2px;overflow:hidden;width:100%;margin-top:3px}
+.timer-fill{height:100%;border-radius:2px;-webkit-transition:width 1s linear;transition:width 1s linear}
+
+.opt{background:rgba(30,14,74,.8);border:2px solid rgba(168,85,247,.2);border-radius:var(--rSm);padding:14px;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;margin-bottom:8px;-webkit-tap-highlight-color:transparent}
+.opt:active{-webkit-transform:scale(.98);transform:scale(.98)}
+.opt-label{width:30px;height:30px;border-radius:50%;background:var(--lavbg);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-weight:800;font-size:13px;color:var(--lav3);-webkit-transition:all .25s;transition:all .25s;-webkit-flex-shrink:0;flex-shrink:0}
+.opt-text{font-size:15px;font-weight:600;-webkit-flex:1;flex:1;line-height:1.6}
+.opt-icon{font-size:20px;font-weight:900;opacity:0;-webkit-transition:opacity .25s;transition:opacity .25s}
+.opt.correct{border-color:var(--green);background:rgba(16,185,129,.1)}
+.opt.correct .opt-label{background:var(--green);color:#fff}
+.opt.correct .opt-icon{opacity:1;color:var(--green)}
+.opt.wrong{border-color:var(--red);background:rgba(239,68,68,.06)}
+.opt.wrong .opt-label{background:var(--red);color:#fff}
+.opt.wrong .opt-icon{opacity:1;color:var(--red)}
+.opt.dimmed{opacity:.45;pointer-events:none}
+
+.chip{display:-webkit-inline-flex;display:inline-flex;-webkit-align-items:center;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.chip-lav{background:var(--lavbg);color:var(--lav3)}
+.chip-gold{background:rgba(245,158,11,.1);color:var(--gold)}
+
+.toggle{width:48px;height:26px;border-radius:13px;background:var(--bg);border:2px solid rgba(168,85,247,.2);cursor:pointer;position:relative;-webkit-transition:all .2s;transition:all .2s;-webkit-flex-shrink:0;flex-shrink:0}
+.toggle.on{background:var(--lav2)}
+.toggle::after{content:'';width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:1px;right:1px;-webkit-transition:all .2s;transition:all .2s}
+.toggle.on::after{right:calc(100% - 23px)}
+
+.topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.topic-card{background:var(--card);border:1px solid rgba(168,85,247,.15);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;-webkit-tap-highlight-color:transparent}
+.topic-card:active{-webkit-transform:scale(.96);transform:scale(.96)}
+.topic-icon{font-size:36px;margin-bottom:6px}
+.topic-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.topic-desc{font-size:10px;color:var(--txt3)}
+
+.header-bar{padding:12px 16px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;border-bottom:1px solid rgba(168,85,247,.12);background:rgba(6,1,15,.95);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);position:-webkit-sticky;position:sticky;top:0;z-index:10}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid rgba(168,85,247,.15);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;cursor:pointer;font-size:16px;-webkit-tap-highlight-color:transparent}
+.icon-btn:active{-webkit-transform:scale(.9);transform:scale(.9)}
+
+.user-bar{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid rgba(168,85,247,.12);border-radius:var(--rSm);margin:0 16px}
+.user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--lav2),#4f46e5);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-size:18px;font-weight:900}
+
+.age-grid{display:-webkit-flex;display:flex;gap:8px}
+.age-btn{-webkit-flex:1;flex:1;padding:14px 4px;border:2px solid rgba(168,85,247,.2);border-radius:var(--rSm);background:var(--bg);text-align:center;cursor:pointer;-webkit-transition:all .2s;transition:all .2s}
+.age-btn.selected{border-color:var(--lav);background:rgba(168,85,247,.12)}
+.age-btn .range{font-size:20px;font-weight:900;color:var(--txt2)}
+.age-btn.selected .range{color:var(--lav3)}
+.age-btn .label{font-size:11px;font-weight:700;color:var(--txt3)}
+.age-btn.selected .label{color:var(--lav3)}
+
+.mode-grid{display:-webkit-flex;display:flex;gap:10px;padding:0 16px}
+.mode-card{-webkit-flex:1;flex:1;padding:16px;border-radius:var(--radius);text-align:center;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;border:1px solid rgba(168,85,247,.12)}
+.mode-card:active{-webkit-transform:scale(.97);transform:scale(.97)}
+.mode-icon{font-size:32px;margin-bottom:6px}
+.mode-name{font-size:15px;font-weight:800}
+.mode-desc{font-size:11px;color:var(--txt3)}
+
+.sec-title{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;padding:0 16px;font-size:15px;font-weight:700;color:var(--lav3)}
+.sec-line{-webkit-flex:1;flex:1;height:1px;background:linear-gradient(90deg,var(--lav2),transparent)}
+
+.lb-row{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid rgba(168,85,247,.1);border-radius:var(--rSm);margin-bottom:6px}
+.lb-avatar{width:32px;height:32px;border-radius:50%;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-weight:900;font-size:14px}
+.lb-info{-webkit-flex:1;flex:1}
+
+.hint-box{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);border-radius:var(--rSm);padding:14px;margin-top:8px}
+.feedback{border-radius:var(--radius);padding:16px;text-align:center;-webkit-animation:fadeUp .3s ease-out;animation:fadeUp .3s ease-out}
+.feedback.correct{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2)}
+.feedback.wrong{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15)}
+.stats-row{display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center;gap:12px;margin-top:12px}
+.stat-chip{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:13px;font-weight:800}
+.score-row{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;padding:4px 0;font-size:14px}
+.set-row{display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;-webkit-align-items:center;align-items:center;padding:10px 0}
+.player-row{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid rgba(168,85,247,.1);margin-bottom:6px;background:var(--bg)}
+.podium{display:-webkit-flex;display:flex;-webkit-align-items:flex-end;align-items:flex-end;-webkit-justify-content:center;justify-content:center;gap:6px;height:200px}
+.podium-item{display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;-webkit-justify-content:flex-end;justify-content:flex-end;border-radius:16px 16px 0 0;padding:12px 8px;text-align:center}
+
+@media(min-width:600px){.screen{max-width:480px;margin:0 auto}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="bg-stars"></div>
+
+<div id="splash" class="screen active">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px">
+<div class="anim-bounce" style="width:160px;height:160px"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#c084fc"/></linearGradient><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f59e0b"/><stop offset="100%" style="stop-color:#fbbf24"/></linearGradient><linearGradient id="gr" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#10b981"/><stop offset="100%" style="stop-color:#34d399"/></linearGradient><linearGradient id="gb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6"/><stop offset="100%" style="stop-color:#60a5fa"/></linearGradient></defs><circle cx="100" cy="100" r="96" fill="#0e0524" stroke="#7c3aed" stroke-width="2" opacity=".8"/><circle cx="45" cy="85" r="22" fill="url(#gp)"/><circle cx="45" cy="65" r="14" fill="#fde68a"/><circle cx="41" cy="63" r="2" fill="#1e1050"/><circle cx="49" cy="63" r="2" fill="#1e1050"/><path d="M42 69 Q45 72 48 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="37" y="52" width="16" height="4" rx="2" fill="#c084fc"/><circle cx="155" cy="85" r="22" fill="url(#gg)"/><circle cx="155" cy="65" r="14" fill="#fde68a"/><circle cx="151" cy="63" r="2" fill="#1e1050"/><circle cx="159" cy="63" r="2" fill="#1e1050"/><path d="M152 69 Q155 72 158 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#fbbf24"/><circle cx="65" cy="148" r="22" fill="url(#gr)"/><circle cx="65" cy="128" r="14" fill="#fde68a"/><circle cx="61" cy="126" r="2" fill="#1e1050"/><circle cx="69" cy="126" r="2" fill="#1e1050"/><path d="M62 132 Q65 135 68 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="57" y="115" width="16" height="4" rx="2" fill="#34d399"/><circle cx="135" cy="148" r="22" fill="url(#gb)"/><circle cx="135" cy="128" r="14" fill="#fde68a"/><circle cx="131" cy="126" r="2" fill="#1e1050"/><circle cx="139" cy="126" r="2" fill="#1e1050"/><path d="M132 132 Q135 135 138 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="127" y="115" width="16" height="4" rx="2" fill="#60a5fa"/><polygon points="100,15 106,28 120,28 109,37 113,50 100,42 87,50 91,37 80,28 94,28" fill="#f59e0b"/><polygon points="100,15 104,24 112,24 106,30 108,38 100,33 92,38 94,30 88,24 96,24" fill="#fde68a"/><rect x="82" y="96" width="36" height="18" rx="6" fill="#1e1050" stroke="#a855f7" stroke-width="2"/><text x="100" y="110" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold" font-family="sans-serif">VS</text><line x1="60" y1="96" x2="82" y2="105" stroke="#c084fc" stroke-width="1.5" opacity=".4"/><line x1="140" y1="96" x2="118" y2="105" stroke="#fbbf24" stroke-width="1.5" opacity=".4"/><line x1="76" y1="135" x2="88" y2="114" stroke="#34d399" stroke-width="1.5" opacity=".4"/><line x1="124" y1="135" x2="112" y2="114" stroke="#60a5fa" stroke-width="1.5" opacity=".4"/><g opacity=".5"><circle cx="20" cy="30" r="2" fill="#a855f7"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/></circle><circle cx="180" cy="25" r="2" fill="#f59e0b"><animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="15" cy="170" r="2" fill="#10b981"><animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite"/></circle><circle cx="185" cy="175" r="2" fill="#3b82f6"><animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/></circle></g></svg></div>
+  <div class="grad-text anim-up" style="font-size:36px;font-weight:900;animation-delay:.2s">نُخبة العقول</div>
+  <div class="anim-up" style="color:var(--txt3);font-size:14px;animation-delay:.4s">مسابقة ذكاء تفاعلية</div>
+  <div class="anim-up" style="margin-top:30px;animation-delay:.6s"><div style="width:24px;height:24px;border:2px solid var(--lav3);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div></div>
+</div>
+</div>
+
+<div id="register" class="screen">
+<div style="flex:1;padding:24px;overflow-y:auto">
+  <div style="text-align:center;margin-top:20px">
+<div style="width:110px;height:110px;margin:0 auto" class="anim-bounce"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#c084fc"/></linearGradient><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f59e0b"/><stop offset="100%" style="stop-color:#fbbf24"/></linearGradient><linearGradient id="gr" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#10b981"/><stop offset="100%" style="stop-color:#34d399"/></linearGradient><linearGradient id="gb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6"/><stop offset="100%" style="stop-color:#60a5fa"/></linearGradient></defs><circle cx="100" cy="100" r="96" fill="#0e0524" stroke="#7c3aed" stroke-width="2" opacity=".8"/><circle cx="45" cy="85" r="22" fill="url(#gp)"/><circle cx="45" cy="65" r="14" fill="#fde68a"/><circle cx="41" cy="63" r="2" fill="#1e1050"/><circle cx="49" cy="63" r="2" fill="#1e1050"/><path d="M42 69 Q45 72 48 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="37" y="52" width="16" height="4" rx="2" fill="#c084fc"/><circle cx="155" cy="85" r="22" fill="url(#gg)"/><circle cx="155" cy="65" r="14" fill="#fde68a"/><circle cx="151" cy="63" r="2" fill="#1e1050"/><circle cx="159" cy="63" r="2" fill="#1e1050"/><path d="M152 69 Q155 72 158 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#fbbf24"/><circle cx="65" cy="148" r="22" fill="url(#gr)"/><circle cx="65" cy="128" r="14" fill="#fde68a"/><circle cx="61" cy="126" r="2" fill="#1e1050"/><circle cx="69" cy="126" r="2" fill="#1e1050"/><path d="M62 132 Q65 135 68 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="57" y="115" width="16" height="4" rx="2" fill="#34d399"/><circle cx="135" cy="148" r="22" fill="url(#gb)"/><circle cx="135" cy="128" r="14" fill="#fde68a"/><circle cx="131" cy="126" r="2" fill="#1e1050"/><circle cx="139" cy="126" r="2" fill="#1e1050"/><path d="M132 132 Q135 135 138 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="127" y="115" width="16" height="4" rx="2" fill="#60a5fa"/><polygon points="100,15 106,28 120,28 109,37 113,50 100,42 87,50 91,37 80,28 94,28" fill="#f59e0b"/><polygon points="100,15 104,24 112,24 106,30 108,38 100,33 92,38 94,30 88,24 96,24" fill="#fde68a"/><rect x="82" y="96" width="36" height="18" rx="6" fill="#1e1050" stroke="#a855f7" stroke-width="2"/><text x="100" y="110" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold" font-family="sans-serif">VS</text><line x1="60" y1="96" x2="82" y2="105" stroke="#c084fc" stroke-width="1.5" opacity=".4"/><line x1="140" y1="96" x2="118" y2="105" stroke="#fbbf24" stroke-width="1.5" opacity=".4"/><line x1="76" y1="135" x2="88" y2="114" stroke="#34d399" stroke-width="1.5" opacity=".4"/><line x1="124" y1="135" x2="112" y2="114" stroke="#60a5fa" stroke-width="1.5" opacity=".4"/></svg></div>
+    <div class="grad-text anim-up" style="font-size:32px;font-weight:900">نُخبة العقول</div>
+    <div class="anim-up" style="color:var(--txt3);font-size:14px">سجّل وابدأ التحدي!</div>
+  </div>
+  <div class="c" style="margin-top:24px">
+    <div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👤 الاسم</div>
+    <input id="regName" class="inp" placeholder="اكتب اسمك هنا..." maxlength="20" autocomplete="off">
+    <div style="color:var(--lav3);font-size:14px;font-weight:700;margin:16px 0 8px">🎂 الفئة العمرية</div>
+    <div class="age-grid">
+      <div class="age-btn" onclick="selectAge(1)" id="age1"><div class="range">9-11</div><div class="label">مستوى أول</div></div>
+      <div class="age-btn" onclick="selectAge(2)" id="age2"><div class="range">12-14</div><div class="label">مستوى ثاني</div></div>
+      <div class="age-btn" onclick="selectAge(3)" id="age3"><div class="range">15-18</div><div class="label">مستوى ثالث</div></div>
+    </div>
+    <button id="regBtn" class="btn btn-primary" style="margin-top:24px;opacity:.5;pointer-events:none" onclick="doRegister()">🚀 ابدأ المسابقة</button>
+  </div>
+</div>
+</div>
+
+<div id="home" class="screen">
+<div style="padding:20px 0 8px;text-align:center">
+<div style="width:75px;height:75px;margin:0 auto"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#c084fc"/></linearGradient><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f59e0b"/><stop offset="100%" style="stop-color:#fbbf24"/></linearGradient><linearGradient id="gr" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#10b981"/><stop offset="100%" style="stop-color:#34d399"/></linearGradient><linearGradient id="gb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6"/><stop offset="100%" style="stop-color:#60a5fa"/></linearGradient></defs><circle cx="100" cy="100" r="96" fill="#0e0524" stroke="#7c3aed" stroke-width="2" opacity=".8"/><circle cx="45" cy="85" r="22" fill="url(#gp)"/><circle cx="45" cy="65" r="14" fill="#fde68a"/><circle cx="41" cy="63" r="2" fill="#1e1050"/><circle cx="49" cy="63" r="2" fill="#1e1050"/><path d="M42 69 Q45 72 48 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="37" y="52" width="16" height="4" rx="2" fill="#c084fc"/><circle cx="155" cy="85" r="22" fill="url(#gg)"/><circle cx="155" cy="65" r="14" fill="#fde68a"/><circle cx="151" cy="63" r="2" fill="#1e1050"/><circle cx="159" cy="63" r="2" fill="#1e1050"/><path d="M152 69 Q155 72 158 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#fbbf24"/><circle cx="65" cy="148" r="22" fill="url(#gr)"/><circle cx="65" cy="128" r="14" fill="#fde68a"/><circle cx="61" cy="126" r="2" fill="#1e1050"/><circle cx="69" cy="126" r="2" fill="#1e1050"/><path d="M62 132 Q65 135 68 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="57" y="115" width="16" height="4" rx="2" fill="#34d399"/><circle cx="135" cy="148" r="22" fill="url(#gb)"/><circle cx="135" cy="128" r="14" fill="#fde68a"/><circle cx="131" cy="126" r="2" fill="#1e1050"/><circle cx="139" cy="126" r="2" fill="#1e1050"/><path d="M132 132 Q135 135 138 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="127" y="115" width="16" height="4" rx="2" fill="#60a5fa"/><polygon points="100,15 106,28 120,28 109,37 113,50 100,42 87,50 91,37 80,28 94,28" fill="#f59e0b"/><polygon points="100,15 104,24 112,24 106,30 108,38 100,33 92,38 94,30 88,24 96,24" fill="#fde68a"/><rect x="82" y="96" width="36" height="18" rx="6" fill="#1e1050" stroke="#a855f7" stroke-width="2"/><text x="100" y="110" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold" font-family="sans-serif">VS</text><line x1="60" y1="96" x2="82" y2="105" stroke="#c084fc" stroke-width="1.5" opacity=".4"/><line x1="140" y1="96" x2="118" y2="105" stroke="#fbbf24" stroke-width="1.5" opacity=".4"/><line x1="76" y1="135" x2="88" y2="114" stroke="#34d399" stroke-width="1.5" opacity=".4"/><line x1="124" y1="135" x2="112" y2="114" stroke="#60a5fa" stroke-width="1.5" opacity=".4"/></svg></div>
+  <div class="grad-text" style="font-size:26px;font-weight:900">نُخبة العقول</div>
+</div>
+<div class="user-bar" id="homeUserBar"></div>
+<div class="mode-grid" style="margin-top:10px">
+  <div class="mode-card" style="background:var(--card)" onclick="sfxClick()">
+    <div class="mode-icon">🎯</div><div class="mode-name">تدريب فردي</div><div class="mode-desc">تدرب بدون ضغط</div>
+  </div>
+  <div class="mode-card" style="background:#1a0f30;border-color:rgba(245,158,11,.15)" onclick="showScreen('battle')">
+    <div class="mode-icon">⚔️</div><div class="mode-name">مسابقة</div><div class="mode-desc">نافس صديقك!</div>
+  </div>
+</div>
+<div class="sec-title" style="margin-top:14px"><span>📚 اختر المادة</span><div class="sec-line"></div></div>
+<div class="topic-grid" style="padding:8px 16px" id="topicGrid"></div>
+<div style="text-align:center;padding:20px;color:var(--txt3);opacity:.4;font-size:11px">نُخبة العقول v6.0 — صُنع بـ ❤️</div>
+</div>
+
+<div id="quiz" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="confirmExit()">→</div>
+  <div style="flex:1;text-align:center">
+    <div id="quizTitle" style="font-size:13px;font-weight:700;color:var(--lav3)"></div>
+    <div id="quizTimer" style="font-size:12px;font-weight:700"></div>
+  </div>
+  <div id="quizCount" style="font-size:12px;color:var(--txt3)"></div>
+</div>
+<div style="padding:0 16px"><div class="pbar"><div class="pbar-fill" id="quizProgress"></div></div></div>
+<div style="padding:0 16px"><div class="timer-bar"><div class="timer-fill" id="timerBar" style="background:var(--green)"></div></div></div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="quizBody"></div>
+</div>
+
+<div id="result" class="screen">
+<div style="flex:1;overflow-y:auto;padding:20px;text-align:center" id="resultContent"></div>
+</div>
+
+<div id="battle" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="showScreen('home')">→</div>
+  <div style="flex:1;text-align:center;font-weight:800">⚔️ المسابقة</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="battleBody"></div>
+</div>
+
+<div id="leaderboard" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="showScreen('home')">→</div>
+  <div style="flex:1;text-align:center;font-weight:800">🏆 لوحة المتصدرين</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="lbBody"></div>
+</div>
+
+<div id="settings" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="showScreen('home')">→</div>
+  <div style="flex:1;font-size:20px;font-weight:800">⚙️ الإعدادات</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="setBody"></div>
+</div>
+
+<script>
+"use strict";
+var S={name:'',level:0,totalScore:0,gamesPlayed:0,sfx:true,vibrate:true,fx:true,leaderboard:[],usedQs:{},subject:'',subjectName:'',subjectIcon:'',qs:[],qi:0,score:0,hints:3,answered:false,hintShown:false,selected:-1,timeLeft:30,maxTime:30,timer:null,roomCode:'',battleSubject:''};
+function save(){try{localStorage.setItem('nq6',JSON.stringify({n:S.name,l:S.level,ts:S.totalScore,gp:S.gamesPlayed,sf:S.sfx,vb:S.vibrate,fx:S.fx,lb:S.leaderboard}))}catch(e){}}
+function load(){try{var d=JSON.parse(localStorage.getItem('nq6'));if(d){S.name=d.n||'';S.level=d.l||0;S.totalScore=d.ts||0;S.gamesPlayed=d.gp||0;if(d.sf!==undefined)S.sfx=d.sf;if(d.vb!==undefined)S.vibrate=d.vb;if(d.fx!==undefined)S.fx=d.fx;if(d.lb)S.leaderboard=d.lb}}catch(e){}}
+
+var audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+function playTone(freq,dur,type,vol){if(!S.sfx)return;try{var c=getAudio(),o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||.1,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+(dur||.15));o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(dur||.15))}catch(e){}}
+function sfxCorrect(){playTone(523,.08);setTimeout(function(){playTone(659,.08)},80);setTimeout(function(){playTone(784,.15)},160)}
+function sfxWrong(){playTone(200,.2,'square',.08);setTimeout(function(){playTone(150,.25,'square',.06)},120)}
+function sfxClick(){playTone(800,.04,'sine',.05)}
+function sfxTick(){playTone(1000,.02,'sine',.03)}
+function sfxFinish(){playTone(523,.1);setTimeout(function(){playTone(659,.1)},100);setTimeout(function(){playTone(784,.1)},200);setTimeout(function(){playTone(1047,.2)},300)}
+function vib(ms){if(S.vibrate&&navigator.vibrate)navigator.vibrate(ms||30)}
+
+function spawnConfetti(n){if(!S.fx)return;var colors=['#a855f7','#f59e0b','#10b981','#3b82f6','#ef4444','#ec4899','#06b6d4'];for(var i=0;i<(n||60);i++){var el=document.createElement('div');el.className='confetti-piece';var shapes=['■','●','▲','★','◆'];el.textContent=shapes[Math.floor(Math.random()*5)];el.style.cssText='left:'+Math.random()*100+'vw;color:'+colors[i%colors.length]+';font-size:'+(8+Math.random()*8)+'px;animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*.5+'s;opacity:'+(0.6+Math.random()*0.4);document.body.appendChild(el);setTimeout(function(e){return function(){e.remove()}}(el),6000)}}
+
+function showScreen(id){var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();sfxClick()}
+
+var selectedLevel=0;
+function selectAge(lv){selectedLevel=lv;sfxClick();var btns=document.querySelectorAll('.age-btn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('selected');document.getElementById('age'+lv).classList.add('selected');checkReg()}
+function checkReg(){var ok=document.getElementById('regName').value.trim()&&selectedLevel>0;var btn=document.getElementById('regBtn');btn.style.opacity=ok?'1':'.5';btn.style.pointerEvents=ok?'auto':'none'}
+function doRegister(){S.name=document.getElementById('regName').value.trim();S.level=selectedLevel;save();showScreen('home')}
+document.getElementById('regName').addEventListener('input',checkReg);
+
+var SUBJECTS=[{key:'math',name:'رياضيات',icon:'🧮',desc:'حساب، جبر، هندسة'},{key:'physics',name:'فيزياء',icon:'⚛️',desc:'قوى، طاقة، حركة'},{key:'finance',name:'تمويل ومالية',icon:'💰',desc:'خصومات، فوائد، استثمار'},{key:'stats',name:'إحصاء واحتمالات',icon:'📊',desc:'متوسطات، توزيعات'},{key:'flight',name:'طيران وفضاء',icon:'✈️',desc:'ديناميكا هوائية'},{key:'iq',name:'ذكاء وتفكير',icon:'🧩',desc:'أنماط، منطق، ألغاز'}];
+
+function renderHome(){var ub=document.getElementById('homeUserBar');var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];ub.innerHTML='<div class="user-avatar">'+(S.name?S.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700">'+S.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(ln[S.level]||'')+'</div></div><div class="icon-btn" onclick="showScreen(\'leaderboard\')">🏆</div><div class="icon-btn" onclick="showScreen(\'settings\')" style="margin-right:6px">⚙️</div>';var grid=document.getElementById('topicGrid');var html='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var cnt=QB.generate(s.key,S.level).length;html+='<div class="topic-card" onclick="startQuiz(\''+s.key+'\',\''+s.name+'\',\''+s.icon+'\')"><div class="topic-icon">'+s.icon+'</div><div class="topic-name">'+s.name+'</div><div class="topic-desc">'+s.desc+'</div><div class="chip chip-lav" style="margin-top:6px">'+cnt+'+ سؤال</div></div>'}grid.innerHTML=html}
+
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function ri(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+
+function startQuiz(key,name,icon,count,isBattle){sfxClick();S.subject=key;S.subjectName=name;S.subjectIcon=icon;var allQs=QB.generate(key,S.level);var fresh=[];for(var i=0;i<allQs.length;i++){if(!S.usedQs[allQs[i].text])fresh.push(allQs[i])}var c=count||15;var pool=fresh.length>=c?fresh:allQs;shuffle(pool);S.qs=pool.slice(0,c);for(var i=0;i<S.qs.length;i++)S.usedQs[S.qs[i].text]=1;S.qi=0;S.score=0;S.hints=3;S.answered=false;S.hintShown=false;S.selected=-1;S.maxTime=isBattle?20:30;showScreen('quiz');renderQuestion()}
+
+function renderQuestion(){if(S.qi>=S.qs.length){finishQuiz();return}S.answered=false;S.hintShown=false;S.selected=-1;var q=S.qs[S.qi];document.getElementById('quizTitle').textContent=S.subjectIcon+' '+S.subjectName;document.getElementById('quizCount').textContent=(S.qi+1)+'/'+S.qs.length;document.getElementById('quizProgress').style.width=((S.qi+1)/S.qs.length*100)+'%';var labels=['أ','ب','ج','د'];var h='<div style="display:flex;gap:6px;margin-bottom:12px"><span class="chip chip-lav">'+q.type+'</span><span class="chip chip-gold">'+['','9-11','12-14','15-18'][S.level]+'</span></div><div style="font-size:19px;font-weight:900;line-height:2;margin-bottom:16px;color:#fff;background:rgba(10,1,24,.85);padding:16px;border-radius:12px;border:1px solid rgba(168,85,247,.2)" id="qText">'+q.text+'</div>';for(var i=0;i<q.options.length;i++){h+='<div class="opt" id="opt'+i+'" onclick="answer('+i+')"><div class="opt-label" id="optL'+i+'">'+labels[i]+'</div><div class="opt-text">'+q.options[i]+'</div><div class="opt-icon" id="optI'+i+'"></div></div>'}if(S.hints>0){var hintText=q.hint||('الإجابة الصحيحة تبدأ بـ: '+q.options[q.ans].substring(0,Math.min(3,q.options[q.ans].length))+'...');h+='<div style="text-align:center;margin-top:8px;padding:8px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.12);border-radius:10px" id="hintBtn"><span style="cursor:pointer;color:var(--gold);font-size:14px;font-weight:700" onclick="useHint()">💡 استخدم تلميح ('+S.hints+' متبقي)</span></div>'}h+='<div id="hintBox"></div><div id="feedbackBox"></div>';h+='<div class="stats-row"><div class="stat-chip" style="background:rgba(16,185,129,.1);color:var(--green)">✅ '+S.score+'</div><div class="stat-chip" style="background:rgba(239,68,68,.1);color:var(--red)">❌ '+(S.qi-S.score)+'</div><div class="stat-chip" style="background:rgba(245,158,11,.1);color:var(--gold)">💡 '+S.hints+'</div></div>';document.getElementById('quizBody').innerHTML=h;startTimer()}
+
+function startTimer(){clearInterval(S.timer);S.timeLeft=S.maxTime;updateTimer();S.timer=setInterval(function(){S.timeLeft--;updateTimer();if(S.timeLeft<=5)sfxTick();if(S.timeLeft<=0){clearInterval(S.timer);autoAnswer()}},1000)}
+function updateTimer(){var el=document.getElementById('quizTimer');var bar=document.getElementById('timerBar');var pct=S.timeLeft/S.maxTime;var color=S.timeLeft>10?'var(--green)':S.timeLeft>5?'var(--gold)':'var(--red)';el.innerHTML='⏱ '+S.timeLeft+' ثانية';el.style.color=color;bar.style.width=(pct*100)+'%';bar.style.background=color;if(S.timeLeft<=5){el.style.animation='timerPulse .5s ease-in-out'}else{el.style.animation='none'}}
+function autoAnswer(){if(!S.answered){S.answered=true;showFeedback(-1);vib(200)}}
+
+function answer(idx){if(S.answered)return;clearInterval(S.timer);S.answered=true;S.selected=idx;var q=S.qs[S.qi];if(idx===q.ans)S.score++;if(FB.roomRef)fbUpdateScore(S.score,false);showFeedback(idx)}
+
+function showFeedback(idx){var q=S.qs[S.qi];for(var i=0;i<q.options.length;i++){var el=document.getElementById('opt'+i);var ic=document.getElementById('optI'+i);if(i===q.ans){el.classList.add('correct');ic.textContent='✓'}else if(i===idx&&idx!==q.ans){el.classList.add('wrong');ic.textContent='✗'}else{el.classList.add('dimmed')}}if(idx===q.ans){sfxCorrect();vib(30);spawnConfetti(15)}else{sfxWrong();vib(100);var qt=document.getElementById('qText');if(qt)qt.style.animation='shake .4s'}var isC=idx===q.ans;var fb=document.getElementById('feedbackBox');var cColor=isC?'var(--green)':'var(--red)';fb.innerHTML='<div class="feedback '+(isC?'correct':'wrong')+'" style="margin-top:12px"><div style="font-size:36px">'+(isC?'🎉':'😔')+'</div><div style="font-size:16px;font-weight:800;color:'+cColor+';margin-top:4px">'+(isC?'إجابة صحيحة! أحسنت':'إجابة خاطئة')+'</div>'+(!isC?'<div style="font-size:14px;color:var(--txt2);margin-top:4px">الإجابة: '+q.options[q.ans]+'</div>':'')+'</div><button class="btn btn-primary" style="margin-top:12px" onclick="nextQuestion()">'+(S.qi+1>=S.qs.length?'📊 النتائج':'← السؤال التالي')+'</button>';var hb=document.getElementById('hintBtn');if(hb)hb.style.display='none'}
+
+function useHint(){if(S.hints<=0||S.hintShown||S.answered)return;sfxClick();S.hints--;S.hintShown=true;var q=S.qs[S.qi];var hText=q.hint;if(!hText){var correct=q.options[q.ans];var wrongIdx=[];for(var i=0;i<q.options.length;i++){if(i!==q.ans)wrongIdx.push(i)}var removeIdx=wrongIdx[Math.floor(Math.random()*wrongIdx.length)];for(var i=0;i<q.options.length;i++){if(i===removeIdx){var el=document.getElementById('opt'+i);if(el){el.classList.add('dimmed');el.style.pointerEvents='none'}}}hText='تم استبعاد إجابة خاطئة! الإجابة من الخيارات المتبقية'}document.getElementById('hintBox').innerHTML='<div class="hint-box"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">💡 تلميح</div><div style="font-size:14px;color:var(--txt2);line-height:1.8">'+hText+'</div></div>';var hb=document.getElementById('hintBtn');if(hb)hb.remove()}
+
+function nextQuestion(){sfxClick();S.qi++;if(S.qi>=S.qs.length){finishQuiz();return}renderQuestion()}
+
+function finishQuiz(){clearInterval(S.timer);sfxFinish();S.gamesPlayed++;S.totalScore+=S.score;var pct=Math.round(S.score*100/S.qs.length);S.leaderboard.push({name:S.name,score:S.score,total:S.qs.length,pct:pct,level:S.level,subject:S.subjectName});S.leaderboard.sort(function(a,b){return b.pct-a.pct});if(S.leaderboard.length>10)S.leaderboard=S.leaderboard.slice(0,10);save();if(FB.roomRef){fbUpdateScore(S.score,true);document.getElementById('resultContent').innerHTML='<div style="text-align:center;margin-top:60px"><div style="font-size:48px;animation:spin 1.5s linear infinite">⏳</div><div style="font-size:20px;font-weight:700;color:var(--txt2);margin-top:16px">انتهيت! نتيجتك: '+S.score+'/'+S.qs.length+'</div><div style="color:var(--txt3);font-size:14px;margin-top:8px">بانتظار بقية المتسابقين...</div></div>';showScreen('result');return}var emoji=pct>=90?'🏆':pct>=70?'🌟':pct>=50?'💪':pct>=30?'📚':'🔄';var msg=pct>=90?'ممتاز! أداء استثنائي!':pct>=70?'رائع! أحسنت!':pct>=50?'جيد! واصل التحسن':pct>=30?'لا بأس، تمرّن أكثر':'حاول مرة أخرى!';var barColor=pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--red)';var bonus=(pct>=80?50:0)+(pct===100?100:0);var totalPts=S.score*10+bonus;var h='<div style="margin-top:30px"><div style="font-size:72px;animation:bounce .8s ease-out">'+emoji+'</div><div class="grad-text anim-pop" style="font-size:56px;font-weight:900;animation-delay:.2s">'+pct+'%</div><div style="font-size:18px;font-weight:700;color:var(--txt2);margin-top:4px">'+msg+'</div><div style="font-size:14px;color:var(--txt3);margin-top:4px">'+S.subjectIcon+' '+S.subjectName+'</div></div><div style="margin:16px auto;max-width:300px;height:8px;background:var(--card2);border-radius:8px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:8px;transition:width 1s"></div></div><div style="display:flex;justify-content:center;gap:24px;margin:20px 0"><div style="text-align:center"><div style="font-size:20px">✅</div><div style="font-size:28px;font-weight:900;color:var(--green)">'+S.score+'</div><div style="font-size:12px;color:var(--txt3)">صحيحة</div></div><div style="text-align:center"><div style="font-size:20px">❌</div><div style="font-size:28px;font-weight:900;color:var(--red)">'+(S.qs.length-S.score)+'</div><div style="font-size:12px;color:var(--txt3)">خاطئة</div></div><div style="text-align:center"><div style="font-size:20px">📝</div><div style="font-size:28px;font-weight:900;color:var(--blue)">'+S.qs.length+'</div><div style="font-size:12px;color:var(--txt3)">إجمالي</div></div></div><div class="c" style="text-align:right;max-width:350px;margin:0 auto"><div style="text-align:center;font-size:15px;font-weight:700;color:var(--lav3);margin-bottom:8px">📊 ملخص الأداء</div><div class="score-row"><span style="color:var(--txt2)">النقاط الأساسية</span><span style="font-weight:800;color:var(--lav3)">'+S.score*10+'</span></div>'+(pct>=80?'<div class="score-row"><span style="color:var(--txt2)">مكافأة التميز</span><span style="font-weight:800;color:var(--gold)">+50</span></div>':'')+(pct===100?'<div class="score-row"><span style="color:var(--txt2)">مكافأة الكمال</span><span style="font-weight:800;color:var(--gold)">+100</span></div>':'')+'<hr style="border:none;border-top:1px solid var(--card2);margin:8px 0"><div class="score-row"><span style="color:var(--txt2)">المجموع</span><span style="font-weight:800;color:var(--txt);font-size:18px">'+totalPts+'</span></div></div><button class="btn btn-primary" style="margin-top:20px;max-width:350px" onclick="showScreen(\'home\')">🏠 العودة للرئيسية</button>';document.getElementById('resultContent').innerHTML=h;showScreen('result');if(pct>=70)setTimeout(function(){spawnConfetti(80)},300)}
+
+function confirmExit(){if(S.answered||S.qi===0||confirm('هل تريد الخروج؟')){clearInterval(S.timer);showScreen('home')}}
+
+function renderBattle(){document.getElementById('battleBody').innerHTML='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">⚔️</div><div class="grad-text" style="font-size:24px;font-weight:900">مسابقة أونلاين</div><div style="color:var(--txt3);font-size:13px">نافس أصدقاءك في الوقت الحقيقي!</div></div>'+'<div id="fbStatus" style="text-align:center;margin-bottom:12px"></div>'+'<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🏠 إنشاء غرفة جديدة</div><div style="color:var(--txt3);font-size:12px;margin:4px 0 12px">أنشئ غرفة وأرسل الكود لأصدقائك</div><button class="btn btn-gold" onclick="fbCreateRoom()">إنشاء غرفة ⚡</button></div>'+'<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🔑 انضمام لغرفة موجودة</div><div style="display:flex;gap:8px;margin-top:8px"><input id="joinCode" class="inp" placeholder="أدخل كود الغرفة" maxlength="6" style="text-align:center;letter-spacing:4px;font-size:18px"><button class="btn btn-primary btn-sm" style="width:auto" onclick="fbJoinRoom()">انضمام</button></div></div>'+'<div id="roomPanel" style="display:none"></div>';fbCheckConnection()}
+
+var FB={db:null,roomRef:null,roomCode:'',isHost:false,unsub:[],battleQs:[],myScore:0,myIdx:0,started:false};
+
+function fbInit(){
+if(FB.db)return true;
+try{
+var config={
+apiKey:"AIzaSyAgS4CRcMy1dtUNcRFY8yztv96FSzTFKmA",
+authDomain:"nukhbat-aloqul.firebaseapp.com",
+databaseURL:"https://nukhbat-aloqul-default-rtdb.firebaseio.com",
+projectId:"nukhbat-aloqul"
+};
+if(config.apiKey==='YOUR_API_KEY'){
+document.getElementById('fbStatus').innerHTML='<div class="c" style="border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)"><div style="color:var(--gold);font-size:14px;font-weight:700">⚠️ Firebase غير مُعد</div><div style="color:var(--txt3);font-size:12px;margin-top:4px;line-height:1.8">لتفعيل المسابقات الأونلاين:<br>1. أنشئ مشروع على firebase.google.com<br>2. فعّل Realtime Database<br>3. ضع الإعدادات في ملف index.html<br><br>📖 راجع ملف "دليل Firebase" المرفق</div></div>';
+return false}
+firebase.initializeApp(config);
+FB.db=firebase.database();
+return true
+}catch(e){
+document.getElementById('fbStatus').innerHTML='<div style="color:var(--red);font-size:13px">❌ خطأ في الاتصال: '+e.message+'</div>';
+return false}}
+
+function fbCheckConnection(){
+if(!fbInit())return;
+FB.db.ref('.info/connected').on('value',function(snap){
+var st=document.getElementById('fbStatus');
+if(st)st.innerHTML=snap.val()?'<div class="chip chip-lav" style="margin:0 auto">🟢 متصل</div>':'<div class="chip" style="margin:0 auto;background:rgba(239,68,68,.1);color:var(--red)">🔴 غير متصل</div>'})}
+
+function fbCleanup(){
+for(var i=0;i<FB.unsub.length;i++){try{FB.unsub[i]()}catch(e){}}
+FB.unsub=[];FB.roomRef=null;FB.isHost=false;FB.started=false;FB.myScore=0;FB.myIdx=0}
+
+function fbCreateRoom(){
+sfxClick();if(!fbInit())return;
+fbCleanup();
+FB.roomCode=String(100000+Math.floor(Math.random()*900000));
+FB.isHost=true;
+FB.roomRef=FB.db.ref('rooms/'+FB.roomCode);
+var roomData={
+host:S.name,
+status:'waiting',
+subject:'',
+created:Date.now(),
+players:{}
+};
+roomData.players[S.name]={score:0,done:false,joined:Date.now()};
+FB.roomRef.set(roomData).then(function(){
+FB.roomRef.onDisconnect().remove();
+fbShowRoom()
+}).catch(function(e){alert('خطأ: '+e.message)})}
+
+function fbJoinRoom(){
+var code=document.getElementById('joinCode').value.trim();
+if(code.length<4){alert('أدخل كود صحيح');return}
+sfxClick();if(!fbInit())return;
+fbCleanup();
+FB.roomCode=code;FB.isHost=false;
+FB.roomRef=FB.db.ref('rooms/'+code);
+FB.roomRef.once('value').then(function(snap){
+if(!snap.exists()){alert('الغرفة غير موجودة! تأكد من الكود');return}
+var data=snap.val();
+if(data.status!=='waiting'){alert('المسابقة بدأت بالفعل!');return}
+var updates={};
+updates['players/'+S.name]={score:0,done:false,joined:Date.now()};
+FB.roomRef.update(updates).then(function(){
+FB.roomRef.child('players/'+S.name).onDisconnect().remove();
+fbShowRoom()
+})
+}).catch(function(e){alert('خطأ: '+e.message)})}
+
+function fbShowRoom(){
+var panel=document.getElementById('roomPanel');
+panel.style.display='block';
+panel.innerHTML='<div class="c" style="margin-bottom:12px;border-color:rgba(245,158,11,.2)"><div style="text-align:center"><div style="color:var(--txt3);font-size:14px">كود الغرفة:</div><div style="font-size:36px;font-weight:900;color:var(--gold);letter-spacing:8px;padding:8px">'+FB.roomCode+'</div><div style="color:var(--txt3);font-size:11px">أرسل الكود لأصدقائك للانضمام</div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👥 المتسابقون:</div><div id="playersList"></div></div>'+(FB.isHost?'<div id="hostControls"><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">📚 اختر المادة:</div><div id="battleTopics" style="display:flex;flex-wrap:wrap;gap:8px"></div></div><button class="btn btn-gold" style="margin-top:8px" id="startBtn" onclick="fbStartBattle()">🚀 ابدأ المسابقة!</button></div>':'<div class="c" style="text-align:center"><div style="font-size:36px">⏳</div><div style="color:var(--txt2);font-size:14px;margin-top:4px">بانتظار صاحب الغرفة يبدأ المسابقة...</div></div>');
+if(FB.isHost)fbRenderTopics();
+fbListenRoom()}
+
+function fbRenderTopics(){
+var el=document.getElementById('battleTopics');if(!el)return;
+var h='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var sel=S.battleSubject===s.key;
+h+='<div class="chip" style="cursor:pointer;padding:8px 14px;border-radius:12px;font-size:13px;border:2px solid '+(sel?'var(--lav)':'rgba(168,85,247,.2)')+';background:'+(sel?'var(--lavbg)':'transparent')+';color:'+(sel?'var(--lav3)':'var(--txt2)')+'" onclick="S.battleSubject=\''+s.key+'\';fbRenderTopics();sfxClick()">'+s.icon+' '+s.name+'</div>'}
+el.innerHTML=h}
+
+function fbListenRoom(){
+var playersRef=FB.roomRef.child('players');
+var cb1=playersRef.on('value',function(snap){
+var players=snap.val()||{};
+var el=document.getElementById('playersList');if(!el)return;
+var names=Object.keys(players);
+var colors=['var(--lav)','var(--gold)','var(--green)','var(--blue)','var(--red)','#ec4899'];
+var h='';for(var i=0;i<names.length;i++){
+var p=names[i];var c=colors[i%colors.length];
+h+='<div class="player-row"><div class="lb-avatar" style="background:'+c+';width:32px;height:32px;font-size:14px">'+p[0]+'</div><div style="flex:1;font-size:14px;font-weight:600">'+p+(p===S.name?' (أنت)':'')+'</div>'+(players[p].done?'<div class="chip chip-lav">انتهى ✓</div>':'<div class="chip" style="background:rgba(16,185,129,.1);color:var(--green)">جاهز</div>')+'</div>'}
+h+='<div style="text-align:center;color:var(--txt3);font-size:12px;margin-top:8px">'+names.length+' متسابق في الغرفة</div>';
+el.innerHTML=h});
+FB.unsub.push(function(){playersRef.off('value',cb1)});
+
+var statusRef=FB.roomRef.child('status');
+var cb2=statusRef.on('value',function(snap){
+if(snap.val()==='playing'&&!FB.started){FB.started=true;fbLoadAndStart()}});
+FB.unsub.push(function(){statusRef.off('value',cb2)})}
+
+function fbStartBattle(){
+if(!S.battleSubject){alert('اختر مادة أولاً!');return}
+sfxClick();
+var allQs=QB.generate(S.battleSubject,S.level);
+shuffle(allQs);
+var selected=allQs.slice(0,10);
+var qData=[];
+for(var i=0;i<selected.length;i++){
+qData.push({text:selected[i].text,options:selected[i].options,ans:selected[i].ans,type:selected[i].type,hint:selected[i].hint||''})}
+var subj=null;for(var i=0;i<SUBJECTS.length;i++){if(SUBJECTS[i].key===S.battleSubject){subj=SUBJECTS[i];break}}
+FB.roomRef.update({status:'playing',subject:S.battleSubject,subjectName:subj?subj.name:'',subjectIcon:subj?subj.icon:'',questions:qData})}
+
+function fbLoadAndStart(){
+FB.roomRef.once('value').then(function(snap){
+var data=snap.val();if(!data||!data.questions)return;
+FB.battleQs=data.questions;FB.myScore=0;FB.myIdx=0;
+S.subjectName=data.subjectName||'مسابقة';
+S.subjectIcon=data.subjectIcon||'⚔️';
+S.qs=[];
+for(var i=0;i<FB.battleQs.length;i++){
+S.qs.push({text:FB.battleQs[i].text,options:FB.battleQs[i].options,ans:FB.battleQs[i].ans,type:FB.battleQs[i].type,hint:FB.battleQs[i].hint})}
+S.qi=0;S.score=0;S.hints=3;S.answered=false;S.maxTime=20;
+showScreen('quiz');renderQuestion();
+fbListenScores()})}
+
+function fbListenScores(){
+var ref=FB.roomRef.child('players');
+var cb=ref.on('value',function(snap){
+var players=snap.val()||{};
+var allDone=true;var names=Object.keys(players);
+for(var i=0;i<names.length;i++){if(!players[names[i]].done)allDone=false}
+if(allDone&&names.length>1)setTimeout(function(){fbShowResults(players)},500)});
+FB.unsub.push(function(){ref.off('value',cb)})}
+
+function fbUpdateScore(score,done){
+if(!FB.roomRef)return;
+var updates={};
+updates['players/'+S.name+'/score']=score;
+if(done)updates['players/'+S.name+'/done']=true;
+FB.roomRef.update(updates)}
+
+function fbShowResults(players){
+var names=Object.keys(players);
+var sorted=[];for(var i=0;i<names.length;i++){sorted.push({name:names[i],score:players[names[i]].score||0})}
+sorted.sort(function(a,b){return b.score-a.score});
+var medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+var colors=['var(--gold)','var(--lav)','var(--green)','var(--blue)','var(--red)','#ec4899'];
+var winner=sorted[0];var isMe=winner.name===S.name;
+var h='<div style="text-align:center;margin-top:20px"><div style="font-size:64px;animation:bounce .8s ease-out">'+(isMe?'🏆':'👏')+'</div><div class="grad-text" style="font-size:28px;font-weight:900;margin-top:8px">'+(isMe?'أنت الفائز! 🎉':'الفائز: '+winner.name+' 🏆')+'</div><div style="color:var(--txt3);font-size:14px;margin-top:4px">نتيجتك: '+S.score+'/'+S.qs.length+'</div></div>';
+h+='<div style="margin-top:20px">';
+for(var i=0;i<sorted.length;i++){var p=sorted[i];
+h+='<div class="lb-row" style="'+(p.name===S.name?'border-color:var(--lav);':'')+'animation:fadeUp .4s ease-out both;animation-delay:'+(i*0.1)+'s"><div style="width:32px;text-align:center;font-size:20px">'+(medals[i]||'')+'</div><div class="lb-avatar" style="background:'+colors[i%colors.length]+'">'+p.name[0]+'</div><div class="lb-info"><div style="font-size:14px;font-weight:700">'+p.name+(p.name===S.name?' (أنت)':'')+'</div></div><div style="font-size:18px;font-weight:900;color:'+colors[i%colors.length]+'">'+p.score+'/'+S.qs.length+'</div></div>'}
+h+='</div><button class="btn btn-primary" style="margin-top:20px" onclick="fbCleanup();showScreen(\'home\')">🏠 العودة للرئيسية</button>';
+document.getElementById('resultContent').innerHTML=h;
+showScreen('result');
+if(isMe)spawnConfetti(100);
+FB.roomRef.remove()}
+
+function renderLeaderboard(){var lb=S.leaderboard;var medals=['🥇','🥈','🥉'];var colors=[['#f59e0b','#f97316'],['#a855f7','#7c3aed'],['#f97316','#ef4444']];var h='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">🏆</div><div style="font-size:24px;font-weight:900">لوحة المتصدرين</div><div style="color:var(--txt3);font-size:13px">أفضل 10 لاعبين</div></div>';if(lb.length===0){h+='<div style="text-align:center;padding:40px"><div style="font-size:48px">📭</div><div style="color:var(--txt3)">لا توجد نتائج بعد</div><div style="color:var(--txt3);font-size:12px">ابدأ اللعب لتظهر هنا!</div></div>'}h+='<div style="margin-top:16px">';for(var i=0;i<lb.length;i++){var e=lb[i];var t3=i<3;h+='<div class="lb-row"'+(e.name===S.name?' style="border-color:var(--lav)"':'')+'><div style="width:28px;text-align:center;font-weight:900;font-size:'+(t3?'18':'16')+'px;color:var(--txt3)">'+(t3?medals[i]:(i+1))+'</div><div class="lb-avatar" style="background:'+(t3?'linear-gradient(135deg,'+colors[i][0]+','+colors[i][1]+')':'var(--card2)')+'">'+(e.name?e.name[0]:'?')+'</div><div class="lb-info"><div style="font-size:14px;font-weight:600">'+e.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(e.subject||'')+'</div></div><div style="text-align:left"><div style="font-size:16px;font-weight:900;color:var(--gold)">'+e.pct+'%</div><div style="font-size:11px;color:var(--txt3)">'+e.score+'/'+e.total+'</div></div></div>'}h+='</div>';document.getElementById('lbBody').innerHTML=h}
+
+function renderSettings(){var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];document.getElementById('setBody').innerHTML='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🔊 الصوت والمؤثرات</div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المؤثرات الصوتية</span><div class="toggle '+(S.sfx?'on':'')+'" onclick="S.sfx=!S.sfx;save();renderSettings();sfxClick()"></div></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">اهتزاز الجوال</span><div class="toggle '+(S.vibrate?'on':'')+'" onclick="S.vibrate=!S.vibrate;save();renderSettings();sfxClick()"></div></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">مؤثرات ضوئية</span><div class="toggle '+(S.fx?'on':'')+'" onclick="S.fx=!S.fx;save();renderSettings();sfxClick()"></div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👤 الحساب</div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">الاسم</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.name+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المستوى</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+(ln[S.level]||'')+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المباريات</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.gamesPlayed+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">النقاط الكلية</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.totalScore+'</span></div></div><div class="c"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🛠️ إجراءات</div><button class="btn btn-ghost" style="margin-bottom:8px;color:var(--lav3)" onclick="resetProfile()">تغيير الاسم والعمر</button><button class="btn btn-ghost" style="color:var(--red)" onclick="clearAllData()">مسح جميع البيانات</button></div><div style="text-align:center;margin-top:20px;color:var(--txt3);font-size:12px">نُخبة العقول v6.0</div>'}
+function resetProfile(){sfxClick();S.name='';S.level=0;save();selectedLevel=0;showScreen('register')}
+function clearAllData(){if(!confirm('سيتم مسح جميع البيانات. متأكد؟'))return;try{localStorage.clear()}catch(e){}location.reload()}
+
+var QB={generate:function(key,level){switch(key){case'math':return this.math(level);case'physics':return this.physics(level);case'finance':return this.finance(level);case'stats':return this.stats(level);case'flight':return this.flight(level);case'iq':return this.iq(level);default:return[]}},
+_q:function(icon,text,opts,ans,type,hint){var items=[];for(var i=0;i<opts.length;i++)items.push({i:i,o:opts[i]});shuffle(items);var newAns=0;for(var i=0;i<items.length;i++){if(items[i].i===ans){newAns=i;break}}var options=[];for(var i=0;i<items.length;i++)options.push(items[i].o);return{icon:icon,text:text,options:options,ans:newAns,type:type,hint:hint||null}},
+
+math:function(lv){var qs=[];var me=this;
+var nm=['أحمد','سارة','خالد','نورة','محمد','فاطمة','عمر','ريم','يوسف','لينا'];
+var gd=['دفاتر','أقلام','كتب','علب عصير','حقائب'];
+if(lv===1){
+for(var i=0;i<150;i++){var a=ri(10,999),b=ri(10,999),s=a+b;qs.push(me._q('🧮','ما ناتج جمع العددين '+a+' و '+b+' ؟',[s+'',(s+ri(1,9))+'',(s-ri(1,9))+'',(s+ri(10,25))+''],0,'جمع','اجمع الآحاد ثم العشرات ثم المئات'))}
+for(var i=0;i<120;i++){var a=ri(100,999),b=ri(10,a-1),d=a-b;qs.push(me._q('🧮','ما ناتج طرح '+b+' من '+a+' ؟',[d+'',(d+ri(1,9))+'',Math.max(1,d-ri(1,8))+'',(a+b)+''],0,'طرح','اطرح الآحاد ثم العشرات ثم المئات'))}
+for(var i=0;i<150;i++){var a=ri(2,12),b=ri(2,12),p=a*b;qs.push(me._q('🧮','ما ناتج ضرب '+a+' في '+b+' ؟',[p+'',(p+ri(1,6))+'',Math.max(1,p-ri(1,5))+'',(a+b)+''],0,'ضرب','تذكّر جدول الضرب: '+a+' × '+b))}
+for(var i=0;i<120;i++){var b2=ri(2,12),q2=ri(2,12),a2=b2*q2;qs.push(me._q('🧮','ما ناتج قسمة '+a2+' على '+b2+' ؟',[q2+'',(q2+ri(1,3))+'',Math.max(1,q2-1)+'',b2+''],0,'قسمة','كم مرة يتكرر '+b2+' في '+a2+'؟'))}
+for(var i=0;i<200;i++){var n=ri(2,9),p=ri(3,15)*5,t=n*p,n1=nm[ri(0,9)],g=gd[ri(0,4)];qs.push(me._q('📝','اشترى '+n1+' عدد '+n+' '+g+' سعر الواحد '+p+' ريال، كم المبلغ الإجمالي الذي دفعه؟',[t+' ريال',(t+p)+' ريال',(t-p)+' ريال',(n+p)+' ريال'],0,'مسائل كلامية','اضرب عدد القطع في سعر الواحدة: '+n+' × '+p))}
+for(var i=0;i<100;i++){var l=ri(3,25),w=ri(3,15),area=l*w,per=2*(l+w);if(i%2===0)qs.push(me._q('📐','مستطيل طوله '+l+' سم وعرضه '+w+' سم. ما مساحته؟',[area+' سم²',per+' سم²',(l+w)+' سم²',(area+w)+' سم²'],0,'هندسة','المساحة = الطول × العرض'));else qs.push(me._q('📐','مستطيل طوله '+l+' سم وعرضه '+w+' سم. ما محيطه؟',[per+' سم',area+' سم',(l+w)+' سم',(per+2)+' سم'],0,'هندسة','المحيط = 2 × (الطول + العرض)'))}
+for(var i=0;i<80;i++){var base=ri(5,40)*10,pct=[10,20,25,50][ri(0,3)],val=Math.floor(base*pct/100);qs.push(me._q('💹','ما قيمة '+pct+'% من العدد '+base+' ؟',[val+'',(val+ri(1,10))+'',Math.max(1,val-ri(1,5))+'',(base-val)+''],0,'نسب مئوية','اضرب العدد في النسبة واقسم على 100'))}}
+if(lv===2){
+for(var i=0;i<250;i++){var a=ri(2,9),x=ri(1,15),b=ri(1,20),c=a*x+b;qs.push(me._q('🔢','حل المعادلة التالية: '+a+'س + '+b+' = '+c+'. ما قيمة س؟',['س = '+x,'س = '+(x+1),'س = '+Math.max(1,x-1),'س = '+Math.floor(c/a)],0,'جبر','انقل '+b+' للطرف الآخر ثم اقسم على '+a))}
+for(var i=0;i<200;i++){var base=ri(5,50)*10,pct=ri(1,19)*5,val=Math.floor(base*pct/100);qs.push(me._q('💹','احسب قيمة '+pct+'% من العدد '+base,[val+'',(val+ri(1,15))+'',Math.max(1,val-ri(1,10))+'',(base-val)+''],0,'نسب مئوية','النسبة × العدد ÷ 100'))}
+for(var i=0;i<120;i++){var rd=ri(2,10),bl=ri(2,10),tot=rd+bl;qs.push(me._q('🎲','في كيس '+rd+' كرات حمراء و '+bl+' كرات زرقاء. ما احتمال سحب كرة حمراء؟',[rd+'/'+tot,bl+'/'+tot,rd+'/'+bl,'1/'+tot],0,'احتمالات','الاحتمال = عدد الكرات الحمراء ÷ العدد الكلي'))}
+for(var i=0;i<100;i++){var b3=ri(2,10),e=ri(2,4);var v=1;for(var j=0;j<e;j++)v*=b3;if(v<10000){var sup=['','','²','³','⁴'][e];qs.push(me._q('🔢','ما قيمة '+b3+' أس '+e+' ('+b3+sup+') ؟',[v+'',(b3*e)+'',(v+ri(1,10))+'',Math.max(1,v-ri(1,10))+''],0,'أسس','اضرب '+b3+' في نفسه '+e+' مرات'))}}
+for(var i=0;i<100;i++){var r=ri(3,20),circ=Math.floor(2*3.14159*r),area=Math.floor(3.14159*r*r);if(i%2===0)qs.push(me._q('⭕','دائرة نصف قطرها '+r+' سم. ما محيطها تقريباً؟',[circ+' سم',area+' سم',(2*r)+' سم',(circ+ri(1,5))+' سم'],0,'دوائر','المحيط = 2 × π × نصف القطر'));else qs.push(me._q('⭕','دائرة نصف قطرها '+r+' سم. ما مساحتها تقريباً؟',[area+' سم²',circ+' سم²',(r*r)+' سم²',(area+ri(1,10))+' سم²'],0,'دوائر','المساحة = π × نصف القطر²'))}}
+if(lv===3){
+for(var i=0;i<150;i++){var a=ri(1,9),n=ri(2,5),da=a*n,dn=n-1;var sup=['','','²','³','⁴','⁵'];var ds=dn===1?'س':'س'+sup[dn];qs.push(me._q('📈','ما المشتقة الأولى للدالة: د(س) = '+a+'س'+sup[n]+' ؟',[da+ds,a+ds,da+'س'+sup[n],n+ds],0,'تفاضل','القاعدة: مشتقة aسⁿ = naسⁿ⁻¹'))}
+for(var i=0;i<120;i++){var a1=ri(1,10),d=ri(2,8),n=ri(8,20),an=a1+(n-1)*d;qs.push(me._q('🔢','في متتابعة حسابية حدها الأول '+a1+' وأساسها '+d+'. ما الحد رقم '+n+'؟',[an+'',(an+d)+'',(an-d)+'',(a1*n)+''],0,'متتابعات','الحد النوني = الحد الأول + (ن-1) × الأساس'))}
+for(var i=0;i<100;i++){var n2=ri(4,10),k=ri(2,Math.min(n2-1,4));var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var c2=f(n2)/(f(k)*f(n2-k));qs.push(me._q('🎯','كم عدد طرق اختيار '+k+' أشخاص من مجموعة '+n2+' أشخاص؟',[c2+'',(c2+ri(1,10))+'',Math.max(1,c2-ri(1,10))+'',(n2*k)+''],0,'توافيق','التوافيق = ن! ÷ (ك! × (ن-ك)!)'))}
+for(var i=0;i<80;i++){var a=ri(1,8),b=ri(1,15);qs.push(me._q('📈','ما قيمة النهاية: نها عندما س→∞ لـ ('+a+'س+'+b+')/(س+1) ؟',[a+'',b+'',(a+b)+'','∞'],0,'نهايات','عندما س→∞ نقسم على أعلى أس'))}}
+return shuffle(qs)},
+
+physics:function(lv){var qs=[];var me=this;
+if(lv===1){
+var cs=[['ما اسم القوة التي تسحب الأجسام نحو مركز الأرض؟','الجاذبية الأرضية','القوة المغناطيسية','قوة الاحتكاك','قوة الدفع'],['ما هي وحدة قياس القوة في النظام الدولي؟','النيوتن','الجول','الواط','الكيلوغرام'],['ما هي وحدة قياس الطاقة في النظام الدولي؟','الجول','النيوتن','الواط','الفولت'],['أيهما ينتقل أسرع: الضوء أم الصوت؟','الضوء أسرع بكثير','الصوت أسرع','سرعتهما متساوية','يعتمد على المكان'],['ماذا يحدث للماء النقي عند تسخينه إلى 100 درجة مئوية؟','يبدأ بالغليان والتبخر','يتجمد ويتحول لثلج','لا يتغير أبداً','يصبح أثقل وزناً'],['ما هي سرعة الضوء في الفراغ تقريباً؟','300 ألف كم في الثانية','300 كم في الثانية','30 ألف كم في الثانية','3 آلاف كم في الثانية'],['ما سرعة الصوت تقريباً في الهواء العادي؟','حوالي 340 متر في الثانية','340 كم في الثانية','34 متر في الثانية','3400 متر في الثانية'],['أي المواد التالية يوصل الكهرباء بشكل جيد؟','النحاس (معدن)','الخشب','البلاستيك','المطاط'],['كيف تنتقل حرارة الشمس إلى الأرض عبر الفضاء؟','بالإشعاع الحراري','بالتوصيل المباشر','بتيارات الحمل','بالتبخير'],['لماذا نرى البرق قبل أن نسمع صوت الرعد؟','لأن الضوء أسرع من الصوت','لأن البرق يحدث أولاً','لأن الأذن أبطأ من العين','بسبب المسافة فقط']];
+for(var c=0;c<cs.length;c++){for(var k=0;k<12;k++)qs.push(me._q('⚛️',cs[c][0],[cs[c][1],cs[c][2],cs[c][3],cs[c][4]],0,'مفاهيم أساسية','فكّر في الخاصية الفيزيائية المرتبطة بالسؤال'))}
+for(var i=0;i<200;i++){var m=ri(2,30),a=ri(1,10),f=m*a;qs.push(me._q('💪','جسم كتلته '+m+' كجم يتحرك بتسارع '+a+' م/ث². ما مقدار القوة المؤثرة عليه؟',[f+' نيوتن',(m+a)+' نيوتن',(f+ri(1,10))+' نيوتن',m+' نيوتن'],0,'قوة ونيوتن','القوة = الكتلة × التسارع (ق = ك × ت)'))}
+for(var i=0;i<200;i++){var m=ri(5,100),w=m*10;qs.push(me._q('⚖️','جسم كتلته '+m+' كجم على سطح الأرض. كم يبلغ وزنه؟ (تسارع الجاذبية = 10)',[w+' نيوتن',m+' نيوتن',(w+10)+' نيوتن',(m*100)+' نيوتن'],0,'وزن وكتلة','الوزن = الكتلة × تسارع الجاذبية'))}}
+if(lv===2){
+for(var i=0;i<200;i++){var m=ri(1,20),v=ri(2,10),ke=Math.round(.5*m*v*v);qs.push(me._q('⚡','جسم كتلته '+m+' كجم يتحرك بسرعة '+v+' م/ث. ما طاقته الحركية؟',[ke+' جول',(m*v)+' جول',(ke+ri(1,20))+' جول',(2*ke)+' جول'],0,'طاقة حركية','الطاقة الحركية = ½ × الكتلة × مربع السرعة'))}
+for(var i=0;i<200;i++){var m=ri(1,15),h=ri(2,25),pe=m*10*h;qs.push(me._q('🏔️','جسم كتلته '+m+' كجم مرفوع لارتفاع '+h+' متر. ما طاقة وضعه؟ (ج = 10)',[pe+' جول',(m*h)+' جول',(pe+50)+' جول',(m+h)+' جول'],0,'طاقة وضع','طاقة الوضع = الكتلة × الجاذبية × الارتفاع'))}
+for(var i=0;i<200;i++){var v=ri(5,50),ii=ri(1,10);if(v%ii!==0)continue;var r=v/ii;qs.push(me._q('🔌','دائرة كهربائية فرق جهدها '+v+' فولت وشدة تيارها '+ii+' أمبير. ما مقاومتها؟',[r+' أوم',(v*ii)+' أوم',(v+ii)+' أوم',(r+ri(1,5))+' أوم'],0,'قانون أوم','المقاومة = فرق الجهد ÷ شدة التيار (م = ج ÷ ت)'))}
+for(var i=0;i<200;i++){var f=ri(100,1000),wl=ri(1,10),v=f*wl;qs.push(me._q('🌊','موجة ترددها '+f+' هرتز وطول موجتها '+wl+' متر. ما سرعتها؟',[v+' م/ث',(f+wl)+' م/ث',f+' م/ث',(v+ri(10,100))+' م/ث'],0,'موجات','سرعة الموجة = التردد × طول الموجة'))}}
+if(lv===3){
+for(var i=0;i<200;i++){var u=ri(0,30),a=ri(1,10),t=ri(1,10),v=u+a*t;qs.push(me._q('🚀','جسم سرعته الابتدائية '+u+' م/ث وتسارعه '+a+' م/ث². ما سرعته بعد '+t+' ثوانٍ؟',[v+' م/ث',(u*t)+' م/ث',(a*t)+' م/ث',(v+ri(1,10))+' م/ث'],0,'معادلات الحركة','السرعة النهائية = السرعة الابتدائية + (التسارع × الزمن)'))}
+for(var i=0;i<150;i++){var m=ri(1,10),dt=ri(5,50),q=m*4200*dt;qs.push(me._q('🌡️','كم جول نحتاج لتسخين '+m+' كجم من الماء بمقدار '+dt+' درجة مئوية؟ (الحرارة النوعية للماء = 4200)',[q+' جول',(m*dt)+' جول',(q+1000)+' جول',(4200*dt)+' جول'],0,'حرارة نوعية','الطاقة الحرارية = الكتلة × الحرارة النوعية × التغير في درجة الحرارة'))}
+for(var i=0;i<150;i++){var v2=ri(10,50),h=Math.floor(v2*v2/20);qs.push(me._q('🎯','أُطلق جسم رأسياً للأعلى بسرعة '+v2+' م/ث. ما أقصى ارتفاع يصله؟ (ج = 10)',[h+' متر',(v2*2)+' متر',(h+ri(1,10))+' متر',v2+' متر'],0,'مقذوفات','أقصى ارتفاع = مربع السرعة ÷ (2 × الجاذبية)'))}}
+return shuffle(qs)},
+
+finance:function(lv){var qs=[];var me=this;
+if(lv===1){
+for(var i=0;i<300;i++){var p=ri(10,200),d=[10,15,20,25,30,50][ri(0,5)],sv=Math.floor(p*d/100),fn=p-sv;qs.push(me._q('🏷️','سلعة سعرها '+p+' ريال وعليها خصم '+d+'%. كم ستدفع بعد الخصم؟',[fn+' ريال',(fn+ri(1,10))+' ريال',p+' ريال',sv+' ريال'],0,'خصومات','احسب مبلغ الخصم أولاً: '+p+' × '+d+'% = '+sv+' ريال'))}
+for(var i=0;i<200;i++){var w=ri(5,50)*5,n=ri(4,12),t=w*n;qs.push(me._q('🐷','شخص يدخر '+w+' ريال كل أسبوع. كم سيجمع بعد '+n+' أسابيع؟',[t+' ريال',(t+w)+' ريال',(t-w)+' ريال',(w+n)+' ريال'],0,'ادخار','المجموع = المبلغ الأسبوعي × عدد الأسابيع'))}
+for(var i=0;i<200;i++){var c=ri(5,30),s=c+ri(2,15),pr=s-c;qs.push(me._q('📈','تاجر اشترى سلعة بـ '+c+' ريال وباعها بـ '+s+' ريال. كم ربحه؟',[pr+' ريال',(pr+ri(1,5))+' ريال',s+' ريال',c+' ريال'],0,'ربح وخسارة','الربح = سعر البيع - سعر الشراء'))}}
+if(lv===2){
+for(var i=0;i<250;i++){var p=ri(5,50)*1000,r=ri(2,10),t=ri(1,5),ii=Math.floor(p*r*t/100);qs.push(me._q('🏦','أودع شخص مبلغ '+p+' ريال في البنك بفائدة بسيطة '+r+'% سنوياً لمدة '+t+' سنوات. كم الفائدة؟',[ii+' ريال',(ii+ri(100,500))+' ريال',Math.floor(p*r/100)+' ريال',(ii*2)+' ريال'],0,'فائدة بسيطة','الفائدة = المبلغ × النسبة × المدة ÷ 100'))}
+for(var i=0;i<250;i++){var o=ri(10,100)*10,inc=ri(10,50),np=Math.round(o*(100+inc)/100);qs.push(me._q('📊','سعر سلعة كان '+o+' ريال ثم ارتفع بنسبة '+inc+'%. كم السعر الجديد؟',[np+' ريال',(o+inc)+' ريال',(np+ri(1,20))+' ريال',o+' ريال'],0,'زيادة مئوية','السعر الجديد = السعر القديم × (100 + نسبة الزيادة) ÷ 100'))}
+for(var i=0;i<200;i++){var sh=ri(10,50),bp=ri(20,200),sp=bp+ri(-20,40),pr=(sp-bp)*sh;var lb=pr>=0?'ربح':'خسارة';qs.push(me._q('📉','مستثمر اشترى '+sh+' سهماً بسعر '+bp+' ريال للسهم ثم باعها بسعر '+sp+' ريال للسهم. ما النتيجة؟',[lb+' '+Math.abs(pr)+' ريال',lb+' '+Math.abs(pr+ri(10,50))+' ريال','لا ربح ولا خسارة',lb+' '+sh+' ريال'],0,'أسهم','النتيجة = (سعر البيع - سعر الشراء) × عدد الأسهم'))}}
+if(lv===3){
+for(var i=0;i<250;i++){var amt=ri(100,1000)*1000,zk=Math.round(amt*2.5/100);qs.push(me._q('🕌','شخص يملك مبلغ '+amt+' ريال مر عليه حول كامل. كم زكاة ماله؟ (نسبة الزكاة 2.5%)',[zk+' ريال',(zk+ri(100,500))+' ريال',Math.floor(amt/100)+' ريال',(zk*2)+' ريال'],0,'زكاة المال','الزكاة = المبلغ × 2.5 ÷ 100'))}
+for(var i=0;i<200;i++){var fx=ri(5,50)*1000,vc=ri(10,80),sp=vc+ri(10,50),be=Math.floor(fx/(sp-vc));qs.push(me._q('📈','مشروع تكاليفه الثابتة '+fx+' ريال والتكلفة المتغيرة '+vc+' ريال وسعر البيع '+sp+' ريال. كم وحدة يحتاج بيعها للتعادل؟',[be+' وحدة',(be+ri(5,20))+' وحدة',Math.floor(fx/sp)+' وحدة',(be*2)+' وحدة'],0,'نقطة التعادل','نقطة التعادل = التكاليف الثابتة ÷ (سعر البيع - التكلفة المتغيرة)'))}
+for(var i=0;i<200;i++){var sar=ri(100,5000),rates=[3.75,0.27,14.5],curs=['دولار أمريكي','يورو','جنيه مصري'],idx=ri(0,2),res=Math.round(sar/rates[idx]);qs.push(me._q('💱','كم يساوي مبلغ '+sar+' ريال سعودي بال'+curs[idx]+'؟ (سعر الصرف: 1 '+curs[idx]+' = '+rates[idx]+' ريال)',[res+' تقريباً',(res+ri(1,20))+'',(Math.max(1,res-ri(1,10)))+'',(Math.round(sar*rates[idx]))+''],0,'تحويل عملات','اقسم المبلغ بالريال على سعر الصرف'))}}
+return shuffle(qs)},
+
+stats:function(lv){var qs=[];var me=this;
+if(lv===1){
+for(var i=0;i<300;i++){var n=ri(3,6),data=[];for(var j=0;j<n;j++)data.push(ri(10,100));var sum=0;for(var j=0;j<data.length;j++)sum+=data[j];var mean=Math.floor(sum/n);qs.push(me._q('📊','ما المتوسط الحسابي للأعداد التالية: '+data.join('، ')+' ؟',[mean+'',(mean+ri(1,5))+'',Math.max(1,mean-ri(1,5))+'',Math.max.apply(null,data)+''],0,'متوسط حسابي','اجمع كل الأعداد ثم اقسم على عددها: '+sum+' ÷ '+n))}
+for(var i=0;i<200;i++){var data=[];for(var j=0;j<5;j++)data.push(ri(1,50));data.sort(function(a,b){return a-b});qs.push(me._q('📊','ما الوسيط (القيمة في المنتصف) للأعداد: '+data.join('، ')+' ؟',[data[2]+'',data[0]+'',data[4]+'',data[1]+''],0,'وسيط','رتّب الأعداد تصاعدياً ثم خذ القيمة الوسطى'))}
+for(var i=0;i<200;i++){var tot=ri(6,20),fav=ri(1,tot-1);qs.push(me._q('🎲','في صندوق '+tot+' كرة، منها '+fav+' كرة حمراء. ما احتمال سحب كرة حمراء؟',[fav+'/'+tot,(tot-fav)+'/'+tot,'1/'+tot,fav+'/'+(fav+1)],0,'احتمال بسيط','الاحتمال = عدد النتائج المطلوبة ÷ عدد النتائج الكلية'))}}
+if(lv===2){
+for(var i=0;i<300;i++){var g1=ri(60,100),w1=ri(20,40),g2=ri(60,100),w2=100-w1,wm=Math.floor((g1*w1+g2*w2)/100);qs.push(me._q('📊','طالب حصل على '+g1+' في مادة وزنها '+w1+'% و '+g2+' في مادة وزنها '+w2+'%. ما المتوسط الموزون؟',[wm+'',Math.floor((g1+g2)/2)+'',(wm+ri(1,5))+'',g1+''],0,'متوسط موزون','المتوسط الموزون = (الدرجة×الوزن + الدرجة×الوزن) ÷ 100'))}
+for(var i=0;i<300;i++){var n=ri(3,7);var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var fact=f(n);qs.push(me._q('🔢','كم عدد الطرق الممكنة لترتيب '+n+' أشخاص في صف واحد؟ ('+n+'!)',[fact+'',(fact+ri(1,10))+'',(n*n)+'',(Math.floor(fact/2))+''],0,'تباديل','عدد التباديل = '+n+'! = '+n+' × '+(n-1)+' × ... × 1'))}
+for(var i=0;i<300;i++){var n2=ri(5,10),k=ri(2,Math.min(n2-1,4));var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var c2=f(n2)/(f(k)*f(n2-k));qs.push(me._q('🎯','كم عدد طرق اختيار '+k+' عناصر من '+n2+' عناصر بدون ترتيب؟',[c2+'',(c2+ri(1,10))+'',(n2*k)+'',Math.max(1,c2-ri(1,10))+''],0,'توافيق','التوافيق = ن! ÷ (ك! × (ن-ك)!)'))}}
+if(lv===3){
+var dists=[['كم نسبة البيانات ضمن انحراف معياري واحد من المتوسط في التوزيع الطبيعي؟','68%','95%','50%','99%'],['كم نسبة البيانات ضمن انحرافين معياريين من المتوسط؟','95%','68%','99%','75%'],['كم نسبة البيانات ضمن 3 انحرافات معيارية من المتوسط؟','99.7%','95%','68%','100%'],['ما شكل منحنى التوزيع الطبيعي؟','جرسي متماثل حول المتوسط','خط مستقيم صاعد','خط تصاعدي منحنٍ','مثلث متساوي الأضلاع'],['ما قيمة معامل الارتباط الطردي التام؟','+1','-1','0','0.5'],['ما قيمة معامل الارتباط العكسي التام؟','-1','+1','0','-0.5']];
+for(var d=0;d<dists.length;d++){for(var k=0;k<30;k++)qs.push(me._q('📊',dists[d][0],[dists[d][1],dists[d][2],dists[d][3],dists[d][4]],0,'توزيع طبيعي','تذكّر القاعدة التجريبية 68-95-99.7'))}
+for(var i=0;i<300;i++){var x=ri(50,100),mean=ri(60,80),sd=ri(5,15),z=Math.round((x-mean)/sd*10)/10;qs.push(me._q('📊','في توزيع طبيعي متوسطه '+mean+' وانحرافه المعياري '+sd+'. ما الدرجة المعيارية Z للقيمة '+x+'؟',['Z ≈ '+z,'Z ≈ '+(z+0.5),'Z ≈ '+(z-0.5),'Z ≈ '+(x-mean)],0,'درجة معيارية','Z = (القيمة - المتوسط) ÷ الانحراف المعياري'))}
+for(var i=0;i<300;i++){var alpha=[0.01,0.05,0.10][ri(0,2)],pv=ri(1,15)/100,rej=pv<alpha;qs.push(me._q('🔬','في اختبار فرضيات مستوى الدلالة α = '+alpha+' والقيمة الاحتمالية p = '+pv+'. ما القرار الإحصائي؟',[rej?'رفض الفرضية الصفرية':'عدم رفض الفرضية الصفرية',rej?'عدم رفض الفرضية الصفرية':'رفض الفرضية الصفرية','قبول الفرضية البديلة دائماً','إعادة التجربة'],0,'اختبار فرضيات','إذا كانت p أقل من α نرفض الفرضية الصفرية'))}}
+return shuffle(qs)},
+
+flight:function(lv){var qs=[];var me=this;
+var core=[['كيف يولّد جناح الطائرة قوة الرفع التي تجعلها تطير؟','الهواء يتحرك أسرع فوق الجناح فيقل الضغط','الجناح مملوء بغاز خفيف يرفعه','المحرك يدفع الجناح للأعلى مباشرة','الهواء تحت الجناح يسخن ويتمدد'],['ما هي القوى الأربع الرئيسية التي تؤثر على الطائرة أثناء الطيران؟','الرفع والوزن والدفع والمقاومة','الرفع والجاذبية والاحتكاك والطرد','الدفع والسحب والمغناطيسية والضغط','الحرارة والضغط والكثافة والسرعة'],['ما المقصود بالتوقف الهوائي (Stall) في الطيران؟','فقدان مفاجئ لقوة الرفع عن الجناح','زيادة كبيرة في سرعة الطائرة','انثناء وكسر في جناح الطائرة','ارتفاع شديد في حرارة المحرك'],['كيف يستطيع الصاروخ التحرك في الفضاء حيث لا يوجد هواء؟','يدفع غازات للخلف فيتقدم للأمام (قانون نيوتن الثالث)','يدفع الهواء المتبقي حوله','يستخدم قوة مغناطيسية','يعتمد على الأشعة الشمسية'],['من هو أول إنسان سافر إلى الفضاء في التاريخ؟','يوري غاغارين عام 1961','نيل آرمسترونغ عام 1969','جون غلين عام 1962','ألان شيبرد عام 1961'],['من هو أول إنسان مشى على سطح القمر؟','نيل آرمسترونغ عام 1969','باز ألدرين عام 1969','يوري غاغارين عام 1961','مايكل كولينز عام 1969'],['ما هي سرعة الإفلات اللازمة للخروج من جاذبية الأرض؟','حوالي 11.2 كم في الثانية','حوالي 1 كم في الثانية','حوالي 100 كم في الثانية','حوالي 343 متر في الثانية'],['في أي عام نجح الأخوان رايت في أول رحلة طيران بطائرة؟','عام 1903','عام 1910','عام 1895','عام 1920'],['لماذا يكون الإقلاع أصعب في الأجواء الحارة جداً؟','لأن الهواء الساخن أقل كثافة فيقل الرفع','لأن إطارات الطائرة تلتصق بالمدرج','لأن الوقود يتبخر بسرعة','لأن المحرك يسخن ويضعف'],['لماذا تطير معظم الطائرات التجارية على ارتفاع 10 كم تقريباً؟','الهواء أقل كثافة فتقل المقاومة ويتوفر الوقود','لتجنب اصطدام الطيور','بسبب قوانين الطيران الدولية','لأن المحركات تحتاج البرودة']];
+var mult=lv===1?10:lv===2?12:16;for(var c=0;c<core.length;c++){for(var k=0;k<mult;k++)qs.push(me._q('✈️',core[c][0],[core[c][1],core[c][2],core[c][3],core[c][4]],0,'معلومات طيران','اقرأ الخيارات بتمعّن واختر الأكثر منطقية'))}
+for(var i=0;i<300;i++){var spd=ri(200,900),t=ri(1,8),d=spd*t;qs.push(me._q('✈️','طائرة تطير بسرعة ثابتة '+spd+' كم/ساعة. كم كيلومتراً تقطع في '+t+' ساعات؟',[d+' كم',(d+ri(50,200))+' كم',(spd+t)+' كم',(d-spd)+' كم'],0,'مسافة طيران','المسافة = السرعة × الزمن'))}
+for(var i=0;i<200;i++){var ft=ri(10,45)*1000,m=Math.round(ft*0.3048);qs.push(me._q('📏','طائرة تطير على ارتفاع '+ft+' قدم. كم يساوي هذا بالمتر تقريباً؟ (1 قدم ≈ 0.3 متر)',['≈ '+m+' متر','≈ '+(m+ri(100,500))+' متر','≈ '+Math.max(100,m-ri(100,300))+' متر','≈ '+ft+' متر'],0,'تحويل وحدات','اضرب عدد الأقدام في 0.3 تقريباً'))}
+if(lv>=2){for(var i=0;i<200;i++){var alt=ri(1,15)*1000,temp=15-Math.round(alt*6.5/1000);qs.push(me._q('🌡️','على ارتفاع '+alt+' متر من سطح البحر، كم تكون درجة الحرارة تقريباً؟ (تنخفض 6.5° لكل كم)',['≈ '+temp+' درجة مئوية','≈ '+(temp+ri(3,10))+' درجة مئوية','≈ '+(temp-ri(3,10))+' درجة مئوية','≈ 15 درجة مئوية'],0,'غلاف جوي','الحرارة = 15 - (الارتفاع بالكم × 6.5)'))}}
+if(lv===3){for(var i=0;i<200;i++){var m2=ri(1,10)*1000,h=ri(100,10000),pe=m2*10*h;qs.push(me._q('🚀','صاروخ كتلته '+m2+' كجم يرتفع إلى '+h+' متر. ما طاقة وضعه؟ (الجاذبية = 10)',[pe+' جول',(m2*h)+' جول',(pe+ri(1000,5000))+' جول',(m2*10)+' جول'],0,'طاقة في الفضاء','طاقة الوضع = الكتلة × الجاذبية × الارتفاع'))}}
+return shuffle(qs)},
+
+iq:function(lv){var qs=[];var me=this;
+for(var i=0;i<250;i++){var a=ri(1,20),b=ri(2,10);var seq=[];for(var j=0;j<5;j++)seq.push(a+b*j);var next=a+b*5;qs.push(me._q('🧩','ما العدد التالي في هذا النمط: '+seq.join('، ')+' ، ___ ؟',[next+'',(next+b)+'',(next-1)+'',(next+ri(1,4))+''],0,'أنماط عددية','لاحظ الفرق بين كل عدد والذي يليه = '+b))}
+for(var i=0;i<150;i++){var a=ri(1,5),r=ri(2,3);var seq=[];var v=a;for(var j=0;j<4;j++){seq.push(v);v*=r}if(v<10000)qs.push(me._q('🧩','ما العدد التالي في هذا النمط: '+seq.join('، ')+' ، ___ ؟',[v+'',(v+ri(1,10))+'',(seq[3]+seq[2])+'',(Math.floor(v/2))+''],0,'أنماط هندسية','كل عدد يساوي العدد السابق مضروباً في '+r))}
+var odds=[['تفاحة، موز، جزر، عنب — أي عنصر لا ينتمي للمجموعة؟','جزر (خضار وليس فاكهة)','تفاحة','موز','عنب'],['مربع، مستطيل، دائرة، معين — أي شكل يختلف عن البقية؟','الدائرة (ليس لها أضلاع)','المربع','المستطيل','المعين'],['كلب، قطة، سمكة، أرنب — أي حيوان يختلف عن البقية؟','السمكة (ليست من الثدييات)','الكلب','القطة','الأرنب'],['أحمر، أزرق، حار، أخضر — أي كلمة لا تنتمي؟','حار (ليس لوناً بل صفة حرارة)','أحمر','أزرق','أخضر'],['كرسي، طاولة، باب، سرير — أي عنصر يختلف؟','الباب (ليس قطعة أثاث)','الكرسي','الطاولة','السرير'],['الأرض، المريخ، القمر، المشتري — أيها يختلف؟','القمر (تابع وليس كوكباً)','الأرض','المريخ','المشتري']];
+for(var o=0;o<odds.length;o++){for(var k=0;k<25;k++)qs.push(me._q('🤔',odds[o][0],[odds[o][1],odds[o][2],odds[o][3],odds[o][4]],0,'الشاذ','ابحث عن القاسم المشترك بين ثلاثة عناصر والعنصر المختلف'))}
+for(var i=0;i<200;i++){var a=ri(2,15),b=ri(2,15),s=a+b,p=a*b;qs.push(me._q('🧠','عددان مجموعهما '+s+' وحاصل ضربهما '+p+'. ما هما؟',[a+' و '+b,(a+1)+' و '+(b-1),s+' و 0',(Math.floor(p/2))+' و 2'],0,'منطق رياضي','جرّب أزواج الأعداد التي مجموعها '+s+' واحسب ضربها'))}
+for(var i=0;i<200;i++){var age1=ri(25,50),diff=ri(20,30),age2=age1-diff;qs.push(me._q('🧠','عمر أب '+age1+' سنة والفرق بينه وبين ابنه '+diff+' سنة. كم عمر الابن؟',[age2+' سنة',(age2+ri(1,5))+' سنة',(age1+diff)+' سنة',diff+' سنة'],0,'ألغاز عمرية','عمر الابن = عمر الأب - فرق العمر'))}
+for(var i=0;i<200;i++){var a=ri(3,20),b=ri(3,20),c=a*b;qs.push(me._q('🧩','أكمل الفراغ: '+a+' × ___ = '+c+'. ما العدد الناقص؟',[b+'',(b+1)+'',(b-1)+'',(Math.floor(c/2))+''],0,'إكمال','اقسم الناتج '+c+' على '+a+' لتجد العدد المفقود'))}
+for(var i=0;i<150;i++){var stH=ri(1,12),dur=ri(1,6),end=(stH+dur)>12?(stH+dur-12):(stH+dur);qs.push(me._q('🕐','إذا كانت الساعة الآن '+stH+' وانتظرت '+dur+' ساعات، كم ستكون الساعة؟',[end+'',(end+1>12?1:end+1)+'',(stH+dur)+'',Math.max(1,end-1)+''],0,'ألغاز الساعة','أضف '+dur+' إلى '+stH+' (إذا تجاوزت 12 اطرح 12)'))}
+return shuffle(qs)}
+};
+
+load();
+setTimeout(function(){if(S.name&&S.level)showScreen('home');else showScreen('register')},2000);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(e){console.log('SW:',e)})}
+</script>
+</body>
+</html>
