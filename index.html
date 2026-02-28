@@ -140,6 +140,7 @@ body{display:flex;flex-direction:column}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 <div class="bg-stars"></div>
@@ -235,9 +236,61 @@ body{display:flex;flex-direction:column}
 <div style="flex:1;overflow-y:auto;padding:16px" id="setBody"></div>
 </div>
 
+<div id="login" class="screen">
+<div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;justify-content:center">
+  <div style="text-align:center;margin-bottom:24px">
+    <div style="font-size:48px">🔐</div>
+    <div class="grad-text" style="font-size:28px;font-weight:900">تسجيل الدخول</div>
+    <div style="color:var(--txt3);font-size:13px;margin-top:4px">سجّل دخولك لحفظ بياناتك ومتابعة تقدمك</div>
+  </div>
+  <div class="c" style="margin-bottom:12px">
+    <div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">📧 البريد الإلكتروني</div>
+    <input id="authEmail" class="inp" type="email" placeholder="example@email.com" style="direction:ltr;text-align:left">
+  </div>
+  <div class="c" style="margin-bottom:12px">
+    <div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🔑 كلمة المرور</div>
+    <input id="authPass" class="inp" type="password" placeholder="6 أحرف على الأقل" style="direction:ltr;text-align:left">
+  </div>
+  <div id="authError" style="color:var(--red);font-size:12px;text-align:center;margin-bottom:8px;display:none"></div>
+  <button class="btn btn-primary" onclick="authLogin()" style="margin-bottom:8px">تسجيل الدخول 🚀</button>
+  <button class="btn btn-gold" onclick="authRegister()" style="margin-bottom:12px">إنشاء حساب جديد ✨</button>
+  <div style="text-align:center"><button class="btn" style="background:transparent;color:var(--txt3);font-size:12px;text-decoration:underline" onclick="authSkip()">تخطي — استخدم بدون حساب</button></div>
+  <div class="c" style="margin-top:16px">
+    <div style="text-align:center;color:var(--txt3);font-size:12px;margin-bottom:8px">👨‍🏫 هل أنت معلم؟</div>
+    <button class="btn" style="background:rgba(16,185,129,.1);border:1px solid var(--green);color:var(--green);font-size:13px" onclick="authTeacherLogin()">دخول كمعلم 🍎</button>
+  </div>
+</div>
+</div>
+
+<div id="dashboard" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="showScreen('home')">→</div>
+  <div style="flex:1;text-align:center;font-weight:800">📊 لوحة التقدم</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="dashBody"></div>
+</div>
+
+<div id="teacher" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="authLogout()">خروج</div>
+  <div style="flex:1;text-align:center;font-weight:800">🍎 لوحة المعلم</div>
+  <div class="icon-btn" onclick="teacherRefresh()">🔄</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="teacherBody"></div>
+</div>
+
+<div id="premium" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="showScreen('home')">→</div>
+  <div style="flex:1;text-align:center;font-weight:800">👑 النسخة المميزة</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="premiumBody"></div>
+</div>
+
 <script>
 "use strict";
 var S={name:'',level:0,totalScore:0,gamesPlayed:0,sfx:true,vibrate:true,fx:true,leaderboard:[],usedQs:{},subject:'',subjectName:'',subjectIcon:'',qs:[],qi:0,score:0,hints:3,answered:false,hintShown:false,selected:-1,timeLeft:30,maxTime:30,timer:null,roomCode:'',battleSubject:''};
+var AUTH={uid:null,email:null,role:'student',db:null,startTime:0};
 function save(){try{localStorage.setItem('nq6',JSON.stringify({n:S.name,l:S.level,ts:S.totalScore,gp:S.gamesPlayed,sf:S.sfx,vb:S.vibrate,fx:S.fx,lb:S.leaderboard}))}catch(e){}}
 function load(){try{var d=JSON.parse(localStorage.getItem('nq6'));if(d){S.name=d.n||'';S.level=d.l||0;S.totalScore=d.ts||0;S.gamesPlayed=d.gp||0;if(d.sf!==undefined)S.sfx=d.sf;if(d.vb!==undefined)S.vibrate=d.vb;if(d.fx!==undefined)S.fx=d.fx;if(d.lb)S.leaderboard=d.lb}}catch(e){}}
 
@@ -253,306 +306,683 @@ function vib(ms){if(S.vibrate&&navigator.vibrate)navigator.vibrate(ms||30)}
 
 function spawnConfetti(n){if(!S.fx)return;var colors=['#a855f7','#f59e0b','#10b981','#3b82f6','#ef4444','#ec4899','#06b6d4'];for(var i=0;i<(n||60);i++){var el=document.createElement('div');el.className='confetti-piece';var shapes=['■','●','▲','★','◆'];el.textContent=shapes[Math.floor(Math.random()*5)];el.style.cssText='left:'+Math.random()*100+'vw;color:'+colors[i%colors.length]+';font-size:'+(8+Math.random()*8)+'px;animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*.5+'s;opacity:'+(0.6+Math.random()*0.4);document.body.appendChild(el);setTimeout(function(e){return function(){e.remove()}}(el),6000)}}
 
-function showScreen(id){var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();sfxClick()}
+function showScreen(id){var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();if(id==='dashboard')renderDashboard();if(id==='teacher')renderTeacher();if(id==='premium')renderPremium();sfxClick()}
 
 var selectedLevel=0;
 function selectAge(lv){selectedLevel=lv;sfxClick();var btns=document.querySelectorAll('.age-btn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('selected');document.getElementById('age'+lv).classList.add('selected');checkReg()}
 function checkReg(){var ok=document.getElementById('regName').value.trim()&&selectedLevel>0;var btn=document.getElementById('regBtn');btn.style.opacity=ok?'1':'.5';btn.style.pointerEvents=ok?'auto':'none'}
-function doRegister(){S.name=document.getElementById('regName').value.trim();S.level=selectedLevel;save();showScreen('home')}
+function doRegister(){S.name=document.getElementById('regName').value.trim();S.level=selectedLevel;save();authSaveProfile(false);showScreen('home')}
 document.getElementById('regName').addEventListener('input',checkReg);
-
-var SUBJECTS=[{key:'math',name:'رياضيات',icon:'🧮',desc:'حساب، جبر، هندسة'},{key:'physics',name:'فيزياء',icon:'⚛️',desc:'قوى، طاقة، حركة'},{key:'finance',name:'تمويل ومالية',icon:'💰',desc:'خصومات، فوائد، استثمار'},{key:'stats',name:'إحصاء واحتمالات',icon:'📊',desc:'متوسطات، توزيعات'},{key:'flight',name:'طيران وفضاء',icon:'✈️',desc:'ديناميكا هوائية'},{key:'iq',name:'ذكاء وتفكير',icon:'🧩',desc:'أنماط، منطق، ألغاز'}];
-
-function renderHome(){var ub=document.getElementById('homeUserBar');var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];ub.innerHTML='<div class="user-avatar">'+(S.name?S.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700">'+S.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(ln[S.level]||'')+'</div></div><div class="icon-btn" onclick="showScreen(\'leaderboard\')">🏆</div><div class="icon-btn" onclick="showScreen(\'settings\')" style="margin-right:6px">⚙️</div>';var grid=document.getElementById('topicGrid');var html='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var cnt=QB.generate(s.key,S.level).length;html+='<div class="topic-card" onclick="startQuiz(\''+s.key+'\',\''+s.name+'\',\''+s.icon+'\')"><div class="topic-icon">'+s.icon+'</div><div class="topic-name">'+s.name+'</div><div class="topic-desc">'+s.desc+'</div><div class="chip chip-lav" style="margin-top:6px">'+cnt+'+ سؤال</div></div>'}grid.innerHTML=html}
 
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function ri(a,b){return a+Math.floor(Math.random()*(b-a+1))}
 
-function startQuiz(key,name,icon,count,isBattle){sfxClick();S.subject=key;S.subjectName=name;S.subjectIcon=icon;var allQs=QB.generate(key,S.level);var fresh=[];for(var i=0;i<allQs.length;i++){if(!S.usedQs[allQs[i].text])fresh.push(allQs[i])}var c=count||15;var pool=fresh.length>=c?fresh:allQs;shuffle(pool);S.qs=pool.slice(0,c);for(var i=0;i<S.qs.length;i++)S.usedQs[S.qs[i].text]=1;S.qi=0;S.score=0;S.hints=3;S.answered=false;S.hintShown=false;S.selected=-1;S.maxTime=isBattle?20:30;showScreen('quiz');renderQuestion()}
+function renderHome(){var ub=document.getElementById('homeUserBar');var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];var authBdg=AUTH.uid?'<div style="font-size:9px;color:var(--green)">● مُسجّل</div>':'<div style="font-size:9px;color:var(--gold);cursor:pointer" onclick="showScreen(\'login\')">سجّل دخولك ←</div>';ub.innerHTML='<div class="user-avatar">'+(S.name?S.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700">'+S.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(ln[S.level]||'')+'</div>'+authBdg+'</div><div class="icon-btn" onclick="showScreen(\'dashboard\')">📊</div><div class="icon-btn" onclick="showScreen(\'leaderboard\')">🏆</div><div class="icon-btn" onclick="showScreen(\'settings\')">⚙️</div>';var grid=document.getElementById('topicGrid');var html='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var cnt=QB.generate(s.key,S.level).length;html+='<div class="topic-card" onclick="startQuiz(\''+s.key+'\',\''+s.name+'\',\''+s.icon+'\')"><div class="topic-icon">'+s.icon+'</div><div class="topic-name">'+s.name+'</div><div class="topic-desc">'+s.desc+'</div><div class="chip chip-lav" style="margin-top:6px">'+cnt+'+ سؤال</div></div>'}grid.innerHTML=html}
 
-function renderQuestion(){if(S.qi>=S.qs.length){finishQuiz();return}S.answered=false;S.hintShown=false;S.selected=-1;var q=S.qs[S.qi];document.getElementById('quizTitle').textContent=S.subjectIcon+' '+S.subjectName;document.getElementById('quizCount').textContent=(S.qi+1)+'/'+S.qs.length;document.getElementById('quizProgress').style.width=((S.qi+1)/S.qs.length*100)+'%';var labels=['أ','ب','ج','د'];var h='<div style="display:flex;gap:6px;margin-bottom:12px"><span class="chip chip-lav">'+q.type+'</span><span class="chip chip-gold">'+['','9-11','12-14','15-18'][S.level]+'</span></div><div style="font-size:19px;font-weight:900;line-height:2;margin-bottom:16px;color:#fff;background:rgba(10,1,24,.85);padding:16px;border-radius:12px;border:1px solid rgba(168,85,247,.2)" id="qText">'+q.text+'</div>';for(var i=0;i<q.options.length;i++){h+='<div class="opt" id="opt'+i+'" onclick="answer('+i+')"><div class="opt-label" id="optL'+i+'">'+labels[i]+'</div><div class="opt-text">'+q.options[i]+'</div><div class="opt-icon" id="optI'+i+'"></div></div>'}if(S.hints>0){var hintText=q.hint||('الإجابة الصحيحة تبدأ بـ: '+q.options[q.ans].substring(0,Math.min(3,q.options[q.ans].length))+'...');h+='<div style="text-align:center;margin-top:8px;padding:8px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.12);border-radius:10px" id="hintBtn"><span style="cursor:pointer;color:var(--gold);font-size:14px;font-weight:700" onclick="useHint()">💡 استخدم تلميح ('+S.hints+' متبقي)</span></div>'}h+='<div id="hintBox"></div><div id="feedbackBox"></div>';h+='<div class="stats-row"><div class="stat-chip" style="background:rgba(16,185,129,.1);color:var(--green)">✅ '+S.score+'</div><div class="stat-chip" style="background:rgba(239,68,68,.1);color:var(--red)">❌ '+(S.qi-S.score)+'</div><div class="stat-chip" style="background:rgba(245,158,11,.1);color:var(--gold)">💡 '+S.hints+'</div></div>';document.getElementById('quizBody').innerHTML=h;startTimer()}
+function renderLeaderboard(){var lb=S.leaderboard;var medals=['🥇','🥈','🥉'];var colors=[['#f59e0b','#f97316'],['#a855f7','#7c3aed'],['#f97316','#ef4444']];var h='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">🏆</div><div style="font-size:24px;font-weight:900">لوحة المتصدرين</div><div style="color:var(--txt3);font-size:13px">أفضل 10 لاعبين</div></div>';if(lb.length===0){h+='<div style="text-align:center;padding:40px"><div style="font-size:48px">📭</div><div style="color:var(--txt3)">لا توجد نتائج بعد</div></div>'}h+='<div style="margin-top:16px">';for(var i=0;i<lb.length;i++){var e=lb[i];var t3=i<3;h+='<div class="lb-row"'+(e.name===S.name?' style="border-color:var(--lav)"':'')+'><div style="width:28px;text-align:center;font-weight:900;font-size:'+(t3?'18':'16')+'px;color:var(--txt3)">'+(t3?medals[i]:(i+1))+'</div><div class="lb-avatar" style="background:'+(t3?'linear-gradient(135deg,'+colors[i][0]+','+colors[i][1]+')':'var(--card2)')+'">'+e.name[0]+'</div><div class="lb-info"><div style="font-size:14px;font-weight:600">'+e.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(e.subject||'')+'</div></div><div style="text-align:left"><div style="font-size:16px;font-weight:900;color:var(--gold)">'+e.pct+'%</div><div style="font-size:11px;color:var(--txt3)">'+e.score+'/'+e.total+'</div></div></div>'}h+='</div>';document.getElementById('lbBody').innerHTML=h}
 
-function startTimer(){clearInterval(S.timer);S.timeLeft=S.maxTime;updateTimer();S.timer=setInterval(function(){S.timeLeft--;updateTimer();if(S.timeLeft<=5)sfxTick();if(S.timeLeft<=0){clearInterval(S.timer);autoAnswer()}},1000)}
-function updateTimer(){var el=document.getElementById('quizTimer');var bar=document.getElementById('timerBar');var pct=S.timeLeft/S.maxTime;var color=S.timeLeft>10?'var(--green)':S.timeLeft>5?'var(--gold)':'var(--red)';el.innerHTML='⏱ '+S.timeLeft+' ثانية';el.style.color=color;bar.style.width=(pct*100)+'%';bar.style.background=color;if(S.timeLeft<=5){el.style.animation='timerPulse .5s ease-in-out'}else{el.style.animation='none'}}
-function autoAnswer(){if(!S.answered){S.answered=true;showFeedback(-1);vib(200)}}
-
-function answer(idx){if(S.answered)return;clearInterval(S.timer);S.answered=true;S.selected=idx;var q=S.qs[S.qi];if(idx===q.ans)S.score++;if(FB.roomRef)fbUpdateScore(S.score,false);showFeedback(idx)}
-
-function showFeedback(idx){var q=S.qs[S.qi];for(var i=0;i<q.options.length;i++){var el=document.getElementById('opt'+i);var ic=document.getElementById('optI'+i);if(i===q.ans){el.classList.add('correct');ic.textContent='✓'}else if(i===idx&&idx!==q.ans){el.classList.add('wrong');ic.textContent='✗'}else{el.classList.add('dimmed')}}if(idx===q.ans){sfxCorrect();vib(30);spawnConfetti(15)}else{sfxWrong();vib(100);var qt=document.getElementById('qText');if(qt)qt.style.animation='shake .4s'}var isC=idx===q.ans;var fb=document.getElementById('feedbackBox');var cColor=isC?'var(--green)':'var(--red)';fb.innerHTML='<div class="feedback '+(isC?'correct':'wrong')+'" style="margin-top:12px"><div style="font-size:36px">'+(isC?'🎉':'😔')+'</div><div style="font-size:16px;font-weight:800;color:'+cColor+';margin-top:4px">'+(isC?'إجابة صحيحة! أحسنت':'إجابة خاطئة')+'</div>'+(!isC?'<div style="font-size:14px;color:var(--txt2);margin-top:4px">الإجابة: '+q.options[q.ans]+'</div>':'')+'</div><button class="btn btn-primary" style="margin-top:12px" onclick="nextQuestion()">'+(S.qi+1>=S.qs.length?'📊 النتائج':'← السؤال التالي')+'</button>';var hb=document.getElementById('hintBtn');if(hb)hb.style.display='none'}
-
-function useHint(){if(S.hints<=0||S.hintShown||S.answered)return;sfxClick();S.hints--;S.hintShown=true;var q=S.qs[S.qi];var hText=q.hint;if(!hText){var correct=q.options[q.ans];var wrongIdx=[];for(var i=0;i<q.options.length;i++){if(i!==q.ans)wrongIdx.push(i)}var removeIdx=wrongIdx[Math.floor(Math.random()*wrongIdx.length)];for(var i=0;i<q.options.length;i++){if(i===removeIdx){var el=document.getElementById('opt'+i);if(el){el.classList.add('dimmed');el.style.pointerEvents='none'}}}hText='تم استبعاد إجابة خاطئة! الإجابة من الخيارات المتبقية'}document.getElementById('hintBox').innerHTML='<div class="hint-box"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">💡 تلميح</div><div style="font-size:14px;color:var(--txt2);line-height:1.8">'+hText+'</div></div>';var hb=document.getElementById('hintBtn');if(hb)hb.remove()}
-
-function nextQuestion(){sfxClick();S.qi++;if(S.qi>=S.qs.length){finishQuiz();return}renderQuestion()}
-
-function finishQuiz(){clearInterval(S.timer);sfxFinish();S.gamesPlayed++;S.totalScore+=S.score;var pct=Math.round(S.score*100/S.qs.length);S.leaderboard.push({name:S.name,score:S.score,total:S.qs.length,pct:pct,level:S.level,subject:S.subjectName});S.leaderboard.sort(function(a,b){return b.pct-a.pct});if(S.leaderboard.length>10)S.leaderboard=S.leaderboard.slice(0,10);save();if(FB.roomRef){fbUpdateScore(S.score,true);document.getElementById('resultContent').innerHTML='<div style="text-align:center;margin-top:60px"><div style="font-size:48px;animation:spin 1.5s linear infinite">⏳</div><div style="font-size:20px;font-weight:700;color:var(--txt2);margin-top:16px">انتهيت! نتيجتك: '+S.score+'/'+S.qs.length+'</div><div style="color:var(--txt3);font-size:14px;margin-top:8px">بانتظار بقية المتسابقين...</div></div>';showScreen('result');return}var emoji=pct>=90?'🏆':pct>=70?'🌟':pct>=50?'💪':pct>=30?'📚':'🔄';var msg=pct>=90?'ممتاز! أداء استثنائي!':pct>=70?'رائع! أحسنت!':pct>=50?'جيد! واصل التحسن':pct>=30?'لا بأس، تمرّن أكثر':'حاول مرة أخرى!';var barColor=pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--red)';var bonus=(pct>=80?50:0)+(pct===100?100:0);var totalPts=S.score*10+bonus;var h='<div style="margin-top:30px"><div style="font-size:72px;animation:bounce .8s ease-out">'+emoji+'</div><div class="grad-text anim-pop" style="font-size:56px;font-weight:900;animation-delay:.2s">'+pct+'%</div><div style="font-size:18px;font-weight:700;color:var(--txt2);margin-top:4px">'+msg+'</div><div style="font-size:14px;color:var(--txt3);margin-top:4px">'+S.subjectIcon+' '+S.subjectName+'</div></div><div style="margin:16px auto;max-width:300px;height:8px;background:var(--card2);border-radius:8px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:8px;transition:width 1s"></div></div><div style="display:flex;justify-content:center;gap:24px;margin:20px 0"><div style="text-align:center"><div style="font-size:20px">✅</div><div style="font-size:28px;font-weight:900;color:var(--green)">'+S.score+'</div><div style="font-size:12px;color:var(--txt3)">صحيحة</div></div><div style="text-align:center"><div style="font-size:20px">❌</div><div style="font-size:28px;font-weight:900;color:var(--red)">'+(S.qs.length-S.score)+'</div><div style="font-size:12px;color:var(--txt3)">خاطئة</div></div><div style="text-align:center"><div style="font-size:20px">📝</div><div style="font-size:28px;font-weight:900;color:var(--blue)">'+S.qs.length+'</div><div style="font-size:12px;color:var(--txt3)">إجمالي</div></div></div><div class="c" style="text-align:right;max-width:350px;margin:0 auto"><div style="text-align:center;font-size:15px;font-weight:700;color:var(--lav3);margin-bottom:8px">📊 ملخص الأداء</div><div class="score-row"><span style="color:var(--txt2)">النقاط الأساسية</span><span style="font-weight:800;color:var(--lav3)">'+S.score*10+'</span></div>'+(pct>=80?'<div class="score-row"><span style="color:var(--txt2)">مكافأة التميز</span><span style="font-weight:800;color:var(--gold)">+50</span></div>':'')+(pct===100?'<div class="score-row"><span style="color:var(--txt2)">مكافأة الكمال</span><span style="font-weight:800;color:var(--gold)">+100</span></div>':'')+'<hr style="border:none;border-top:1px solid var(--card2);margin:8px 0"><div class="score-row"><span style="color:var(--txt2)">المجموع</span><span style="font-weight:800;color:var(--txt);font-size:18px">'+totalPts+'</span></div></div><button class="btn btn-primary" style="margin-top:20px;max-width:350px" onclick="showScreen(\'home\')">🏠 العودة للرئيسية</button>';document.getElementById('resultContent').innerHTML=h;showScreen('result');if(pct>=70)setTimeout(function(){spawnConfetti(80)},300)}
-
-function confirmExit(){if(S.answered||S.qi===0||confirm('هل تريد الخروج؟')){clearInterval(S.timer);showScreen('home')}}
-
-function renderBattle(){document.getElementById('battleBody').innerHTML='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">⚔️</div><div class="grad-text" style="font-size:24px;font-weight:900">مسابقة أونلاين</div><div style="color:var(--txt3);font-size:13px">نافس أصدقاءك في الوقت الحقيقي!</div></div>'+'<div id="fbStatus" style="text-align:center;margin-bottom:12px"></div>'+'<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🏠 إنشاء غرفة جديدة</div><div style="color:var(--txt3);font-size:12px;margin:4px 0 12px">أنشئ غرفة وأرسل الكود لأصدقائك</div><button class="btn btn-gold" onclick="fbCreateRoom()">إنشاء غرفة ⚡</button></div>'+'<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🔑 انضمام لغرفة موجودة</div><div style="display:flex;gap:8px;margin-top:8px"><input id="joinCode" class="inp" placeholder="أدخل كود الغرفة" maxlength="6" style="text-align:center;letter-spacing:4px;font-size:18px"><button class="btn btn-primary btn-sm" style="width:auto" onclick="fbJoinRoom()">انضمام</button></div></div>'+'<div id="roomPanel" style="display:none"></div>';fbCheckConnection()}
-
-var FB={db:null,roomRef:null,roomCode:'',isHost:false,unsub:[],battleQs:[],myScore:0,myIdx:0,started:false};
-
-function fbInit(){
-if(FB.db)return true;
-try{
-var config={
-apiKey:"AIzaSyAgS4CRcMy1dtUNcRFY8yztv96FSzTFKmA",
-authDomain:"nukhbat-aloqul.firebaseapp.com",
-databaseURL:"https://nukhbat-aloqul-default-rtdb.firebaseio.com",
-projectId:"nukhbat-aloqul"
-};
-if(config.apiKey==='YOUR_API_KEY'){
-document.getElementById('fbStatus').innerHTML='<div class="c" style="border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)"><div style="color:var(--gold);font-size:14px;font-weight:700">⚠️ Firebase غير مُعد</div><div style="color:var(--txt3);font-size:12px;margin-top:4px;line-height:1.8">لتفعيل المسابقات الأونلاين:<br>1. أنشئ مشروع على firebase.google.com<br>2. فعّل Realtime Database<br>3. ضع الإعدادات في ملف index.html<br><br>📖 راجع ملف "دليل Firebase" المرفق</div></div>';
-return false}
-firebase.initializeApp(config);
-FB.db=firebase.database();
-return true
-}catch(e){
-document.getElementById('fbStatus').innerHTML='<div style="color:var(--red);font-size:13px">❌ خطأ في الاتصال: '+e.message+'</div>';
-return false}}
-
-function fbCheckConnection(){
-if(!fbInit())return;
-FB.db.ref('.info/connected').on('value',function(snap){
-var st=document.getElementById('fbStatus');
-if(st)st.innerHTML=snap.val()?'<div class="chip chip-lav" style="margin:0 auto">🟢 متصل</div>':'<div class="chip" style="margin:0 auto;background:rgba(239,68,68,.1);color:var(--red)">🔴 غير متصل</div>'})}
-
-function fbCleanup(){
-for(var i=0;i<FB.unsub.length;i++){try{FB.unsub[i]()}catch(e){}}
-FB.unsub=[];FB.roomRef=null;FB.isHost=false;FB.started=false;FB.myScore=0;FB.myIdx=0}
-
-function fbCreateRoom(){
-sfxClick();if(!fbInit())return;
-fbCleanup();
-FB.roomCode=String(100000+Math.floor(Math.random()*900000));
-FB.isHost=true;
-FB.roomRef=FB.db.ref('rooms/'+FB.roomCode);
-var roomData={
-host:S.name,
-status:'waiting',
-subject:'',
-created:Date.now(),
-players:{}
-};
-roomData.players[S.name]={score:0,done:false,joined:Date.now()};
-FB.roomRef.set(roomData).then(function(){
-FB.roomRef.onDisconnect().remove();
-fbShowRoom()
-}).catch(function(e){alert('خطأ: '+e.message)})}
-
-function fbJoinRoom(){
-var code=document.getElementById('joinCode').value.trim();
-if(code.length<4){alert('أدخل كود صحيح');return}
-sfxClick();if(!fbInit())return;
-fbCleanup();
-FB.roomCode=code;FB.isHost=false;
-FB.roomRef=FB.db.ref('rooms/'+code);
-FB.roomRef.once('value').then(function(snap){
-if(!snap.exists()){alert('الغرفة غير موجودة! تأكد من الكود');return}
-var data=snap.val();
-if(data.status!=='waiting'){alert('المسابقة بدأت بالفعل!');return}
-var updates={};
-updates['players/'+S.name]={score:0,done:false,joined:Date.now()};
-FB.roomRef.update(updates).then(function(){
-FB.roomRef.child('players/'+S.name).onDisconnect().remove();
-fbShowRoom()
-})
-}).catch(function(e){alert('خطأ: '+e.message)})}
-
-function fbShowRoom(){
-var panel=document.getElementById('roomPanel');
-panel.style.display='block';
-panel.innerHTML='<div class="c" style="margin-bottom:12px;border-color:rgba(245,158,11,.2)"><div style="text-align:center"><div style="color:var(--txt3);font-size:14px">كود الغرفة:</div><div style="font-size:36px;font-weight:900;color:var(--gold);letter-spacing:8px;padding:8px">'+FB.roomCode+'</div><div style="color:var(--txt3);font-size:11px">أرسل الكود لأصدقائك للانضمام</div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👥 المتسابقون:</div><div id="playersList"></div></div>'+(FB.isHost?'<div id="hostControls"><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">📚 اختر المادة:</div><div id="battleTopics" style="display:flex;flex-wrap:wrap;gap:8px"></div></div><button class="btn btn-gold" style="margin-top:8px" id="startBtn" onclick="fbStartBattle()">🚀 ابدأ المسابقة!</button></div>':'<div class="c" style="text-align:center"><div style="font-size:36px">⏳</div><div style="color:var(--txt2);font-size:14px;margin-top:4px">بانتظار صاحب الغرفة يبدأ المسابقة...</div></div>');
-if(FB.isHost)fbRenderTopics();
-fbListenRoom()}
-
-function fbRenderTopics(){
-var el=document.getElementById('battleTopics');if(!el)return;
-var h='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var sel=S.battleSubject===s.key;
-h+='<div class="chip" style="cursor:pointer;padding:8px 14px;border-radius:12px;font-size:13px;border:2px solid '+(sel?'var(--lav)':'rgba(168,85,247,.2)')+';background:'+(sel?'var(--lavbg)':'transparent')+';color:'+(sel?'var(--lav3)':'var(--txt2)')+'" onclick="S.battleSubject=\''+s.key+'\';fbRenderTopics();sfxClick()">'+s.icon+' '+s.name+'</div>'}
-el.innerHTML=h}
-
-function fbListenRoom(){
-var playersRef=FB.roomRef.child('players');
-var cb1=playersRef.on('value',function(snap){
-var players=snap.val()||{};
-var el=document.getElementById('playersList');if(!el)return;
-var names=Object.keys(players);
-var colors=['var(--lav)','var(--gold)','var(--green)','var(--blue)','var(--red)','#ec4899'];
-var h='';for(var i=0;i<names.length;i++){
-var p=names[i];var c=colors[i%colors.length];
-h+='<div class="player-row"><div class="lb-avatar" style="background:'+c+';width:32px;height:32px;font-size:14px">'+p[0]+'</div><div style="flex:1;font-size:14px;font-weight:600">'+p+(p===S.name?' (أنت)':'')+'</div>'+(players[p].done?'<div class="chip chip-lav">انتهى ✓</div>':'<div class="chip" style="background:rgba(16,185,129,.1);color:var(--green)">جاهز</div>')+'</div>'}
-h+='<div style="text-align:center;color:var(--txt3);font-size:12px;margin-top:8px">'+names.length+' متسابق في الغرفة</div>';
-el.innerHTML=h});
-FB.unsub.push(function(){playersRef.off('value',cb1)});
-
-var statusRef=FB.roomRef.child('status');
-var cb2=statusRef.on('value',function(snap){
-if(snap.val()==='playing'&&!FB.started){FB.started=true;fbLoadAndStart()}});
-FB.unsub.push(function(){statusRef.off('value',cb2)})}
-
-function fbStartBattle(){
-if(!S.battleSubject){alert('اختر مادة أولاً!');return}
-sfxClick();
-var allQs=QB.generate(S.battleSubject,S.level);
-shuffle(allQs);
-var selected=allQs.slice(0,10);
-var qData=[];
-for(var i=0;i<selected.length;i++){
-qData.push({text:selected[i].text,options:selected[i].options,ans:selected[i].ans,type:selected[i].type,hint:selected[i].hint||''})}
-var subj=null;for(var i=0;i<SUBJECTS.length;i++){if(SUBJECTS[i].key===S.battleSubject){subj=SUBJECTS[i];break}}
-FB.roomRef.update({status:'playing',subject:S.battleSubject,subjectName:subj?subj.name:'',subjectIcon:subj?subj.icon:'',questions:qData})}
-
-function fbLoadAndStart(){
-FB.roomRef.once('value').then(function(snap){
-var data=snap.val();if(!data||!data.questions)return;
-FB.battleQs=data.questions;FB.myScore=0;FB.myIdx=0;
-S.subjectName=data.subjectName||'مسابقة';
-S.subjectIcon=data.subjectIcon||'⚔️';
-S.qs=[];
-for(var i=0;i<FB.battleQs.length;i++){
-S.qs.push({text:FB.battleQs[i].text,options:FB.battleQs[i].options,ans:FB.battleQs[i].ans,type:FB.battleQs[i].type,hint:FB.battleQs[i].hint})}
-S.qi=0;S.score=0;S.hints=3;S.answered=false;S.maxTime=20;
-showScreen('quiz');renderQuestion();
-fbListenScores()})}
-
-function fbListenScores(){
-var ref=FB.roomRef.child('players');
-var cb=ref.on('value',function(snap){
-var players=snap.val()||{};
-var allDone=true;var names=Object.keys(players);
-for(var i=0;i<names.length;i++){if(!players[names[i]].done)allDone=false}
-if(allDone&&names.length>1)setTimeout(function(){fbShowResults(players)},500)});
-FB.unsub.push(function(){ref.off('value',cb)})}
-
-function fbUpdateScore(score,done){
-if(!FB.roomRef)return;
-var updates={};
-updates['players/'+S.name+'/score']=score;
-if(done)updates['players/'+S.name+'/done']=true;
-FB.roomRef.update(updates)}
-
-function fbShowResults(players){
-var names=Object.keys(players);
-var sorted=[];for(var i=0;i<names.length;i++){sorted.push({name:names[i],score:players[names[i]].score||0})}
-sorted.sort(function(a,b){return b.score-a.score});
-var medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
-var colors=['var(--gold)','var(--lav)','var(--green)','var(--blue)','var(--red)','#ec4899'];
-var winner=sorted[0];var isMe=winner.name===S.name;
-var h='<div style="text-align:center;margin-top:20px"><div style="font-size:64px;animation:bounce .8s ease-out">'+(isMe?'🏆':'👏')+'</div><div class="grad-text" style="font-size:28px;font-weight:900;margin-top:8px">'+(isMe?'أنت الفائز! 🎉':'الفائز: '+winner.name+' 🏆')+'</div><div style="color:var(--txt3);font-size:14px;margin-top:4px">نتيجتك: '+S.score+'/'+S.qs.length+'</div></div>';
-h+='<div style="margin-top:20px">';
-for(var i=0;i<sorted.length;i++){var p=sorted[i];
-h+='<div class="lb-row" style="'+(p.name===S.name?'border-color:var(--lav);':'')+'animation:fadeUp .4s ease-out both;animation-delay:'+(i*0.1)+'s"><div style="width:32px;text-align:center;font-size:20px">'+(medals[i]||'')+'</div><div class="lb-avatar" style="background:'+colors[i%colors.length]+'">'+p.name[0]+'</div><div class="lb-info"><div style="font-size:14px;font-weight:700">'+p.name+(p.name===S.name?' (أنت)':'')+'</div></div><div style="font-size:18px;font-weight:900;color:'+colors[i%colors.length]+'">'+p.score+'/'+S.qs.length+'</div></div>'}
-h+='</div><button class="btn btn-primary" style="margin-top:20px" onclick="fbCleanup();showScreen(\'home\')">🏠 العودة للرئيسية</button>';
-document.getElementById('resultContent').innerHTML=h;
-showScreen('result');
-if(isMe)spawnConfetti(100);
-FB.roomRef.remove()}
-
-function renderLeaderboard(){var lb=S.leaderboard;var medals=['🥇','🥈','🥉'];var colors=[['#f59e0b','#f97316'],['#a855f7','#7c3aed'],['#f97316','#ef4444']];var h='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">🏆</div><div style="font-size:24px;font-weight:900">لوحة المتصدرين</div><div style="color:var(--txt3);font-size:13px">أفضل 10 لاعبين</div></div>';if(lb.length===0){h+='<div style="text-align:center;padding:40px"><div style="font-size:48px">📭</div><div style="color:var(--txt3)">لا توجد نتائج بعد</div><div style="color:var(--txt3);font-size:12px">ابدأ اللعب لتظهر هنا!</div></div>'}h+='<div style="margin-top:16px">';for(var i=0;i<lb.length;i++){var e=lb[i];var t3=i<3;h+='<div class="lb-row"'+(e.name===S.name?' style="border-color:var(--lav)"':'')+'><div style="width:28px;text-align:center;font-weight:900;font-size:'+(t3?'18':'16')+'px;color:var(--txt3)">'+(t3?medals[i]:(i+1))+'</div><div class="lb-avatar" style="background:'+(t3?'linear-gradient(135deg,'+colors[i][0]+','+colors[i][1]+')':'var(--card2)')+'">'+(e.name?e.name[0]:'?')+'</div><div class="lb-info"><div style="font-size:14px;font-weight:600">'+e.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(e.subject||'')+'</div></div><div style="text-align:left"><div style="font-size:16px;font-weight:900;color:var(--gold)">'+e.pct+'%</div><div style="font-size:11px;color:var(--txt3)">'+e.score+'/'+e.total+'</div></div></div>'}h+='</div>';document.getElementById('lbBody').innerHTML=h}
-
-function renderSettings(){var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];document.getElementById('setBody').innerHTML='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🔊 الصوت والمؤثرات</div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المؤثرات الصوتية</span><div class="toggle '+(S.sfx?'on':'')+'" onclick="S.sfx=!S.sfx;save();renderSettings();sfxClick()"></div></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">اهتزاز الجوال</span><div class="toggle '+(S.vibrate?'on':'')+'" onclick="S.vibrate=!S.vibrate;save();renderSettings();sfxClick()"></div></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">مؤثرات ضوئية</span><div class="toggle '+(S.fx?'on':'')+'" onclick="S.fx=!S.fx;save();renderSettings();sfxClick()"></div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👤 الحساب</div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">الاسم</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.name+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المستوى</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+(ln[S.level]||'')+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المباريات</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.gamesPlayed+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">النقاط الكلية</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.totalScore+'</span></div></div><div class="c"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🛠️ إجراءات</div><button class="btn btn-ghost" style="margin-bottom:8px;color:var(--lav3)" onclick="resetProfile()">تغيير الاسم والعمر</button><button class="btn btn-ghost" style="color:var(--red)" onclick="clearAllData()">مسح جميع البيانات</button></div><div style="text-align:center;margin-top:20px;color:var(--txt3);font-size:12px">نُخبة العقول v6.0</div>'}
+function renderSettings(){var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];document.getElementById('setBody').innerHTML='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🔊 الصوت والمؤثرات</div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المؤثرات الصوتية</span><div class="toggle '+(S.sfx?'on':'')+'" onclick="S.sfx=!S.sfx;save();renderSettings();sfxClick()"></div></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">اهتزاز الجوال</span><div class="toggle '+(S.vibrate?'on':'')+'" onclick="S.vibrate=!S.vibrate;save();renderSettings();sfxClick()"></div></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">مؤثرات ضوئية</span><div class="toggle '+(S.fx?'on':'')+'" onclick="S.fx=!S.fx;save();renderSettings();sfxClick()"></div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👤 الحساب</div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">الاسم</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.name+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المستوى</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+(ln[S.level]||'')+'</span></div><div class="set-row"><span style="font-size:14px;color:var(--txt2)">المباريات</span><span style="font-size:14px;color:var(--lav3);font-weight:600">'+S.gamesPlayed+'</span></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🔐 الحساب</div>'+(AUTH.uid?'<div class="set-row"><span style="font-size:14px;color:var(--txt2)">البريد</span><span style="font-size:12px;color:var(--green)">'+AUTH.email+'</span></div><button class="btn btn-ghost" style="color:var(--red);margin-top:8px" onclick="authLogout()">تسجيل الخروج</button>':'<button class="btn btn-gold" style="margin-top:4px" onclick="showScreen(\'login\')">تسجيل الدخول 🔐</button>')+'</div><div class="c"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">🛠️ إجراءات</div><button class="btn btn-ghost" style="margin-bottom:8px;color:var(--lav3)" onclick="resetProfile()">تغيير الاسم والعمر</button><button class="btn btn-ghost" style="color:var(--red)" onclick="clearAllData()">مسح جميع البيانات</button></div><div style="text-align:center;margin-top:20px;color:var(--txt3);font-size:12px">نُخبة العقول v7.0</div>'}
 function resetProfile(){sfxClick();S.name='';S.level=0;save();selectedLevel=0;showScreen('register')}
 function clearAllData(){if(!confirm('سيتم مسح جميع البيانات. متأكد؟'))return;try{localStorage.clear()}catch(e){}location.reload()}
 
-var QB={generate:function(key,level){switch(key){case'math':return this.math(level);case'physics':return this.physics(level);case'finance':return this.finance(level);case'stats':return this.stats(level);case'flight':return this.flight(level);case'iq':return this.iq(level);default:return[]}},
+function renderBattle(){document.getElementById('battleBody').innerHTML='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">⚔️</div><div class="grad-text" style="font-size:24px;font-weight:900">المسابقة</div><div style="color:var(--txt3);font-size:13px">نافس صديقك!</div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🏠 إنشاء غرفة</div><button class="btn btn-gold" style="margin-top:8px" onclick="createRoom()">إنشاء غرفة ⚡</button><div id="roomInfo" style="display:none;text-align:center;margin-top:12px"><div style="color:var(--txt3)">كود الغرفة:</div><div id="roomCode" style="font-size:32px;font-weight:900;color:var(--gold);letter-spacing:6px"></div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🔑 الانضمام</div><div style="display:flex;gap:8px;margin-top:8px"><input id="joinCode" class="inp" placeholder="أدخل الكود" maxlength="6" style="text-align:center;letter-spacing:4px;font-size:18px"><button class="btn btn-primary btn-sm" style="width:auto" onclick="joinRoom()">انضمام</button></div></div><div id="battleSubjects" style="display:none"><div class="c"><div style="color:var(--lav3);font-size:16px;font-weight:700;margin-bottom:8px">📚 اختر مادة</div><div id="battleTopics" style="display:flex;flex-wrap:wrap;gap:8px"></div><button class="btn btn-gold" style="margin-top:16px" onclick="startBattle()">🚀 ابدأ!</button></div></div>'}
+function createRoom(){sfxClick();S.roomCode=String(100000+Date.now()%900000);document.getElementById('roomCode').textContent=S.roomCode;document.getElementById('roomInfo').style.display='block';document.getElementById('battleSubjects').style.display='block';renderBattleTopics()}
+function joinRoom(){var code=document.getElementById('joinCode').value.trim();if(code.length<4)return;sfxClick();S.roomCode=code;document.getElementById('battleSubjects').style.display='block';renderBattleTopics()}
+function renderBattleTopics(){var el=document.getElementById('battleTopics');var h='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var sel=S.battleSubject===s.key;h+='<div class="chip" style="cursor:pointer;padding:8px 14px;border-radius:12px;font-size:13px;border:2px solid '+(sel?'var(--lav)':'rgba(168,85,247,.2)')+';background:'+(sel?'var(--lavbg)':'transparent')+';color:'+(sel?'var(--lav3)':'var(--txt2)')+'" onclick="S.battleSubject=\''+s.key+'\';renderBattleTopics();sfxClick()">'+s.icon+' '+s.name+'</div>'}el.innerHTML=h}
+function startBattle(){if(!S.battleSubject){alert('اختر مادة أولاً!');return}var s=null;for(var i=0;i<SUBJECTS.length;i++){if(SUBJECTS[i].key===S.battleSubject){s=SUBJECTS[i];break}}if(s)startQuiz(s.key,s.name,s.icon,10,true)}
+
+var SUBJECTS=[
+{key:'math',name:'رياضيات',icon:'🧮',desc:'حساب، جبر، هندسة'},
+{key:'physics',name:'فيزياء',icon:'⚛️',desc:'قوى، طاقة، حركة'},
+{key:'arabic',name:'لغة عربية',icon:'📖',desc:'نحو، إملاء، بلاغة'},
+{key:'english',name:'إنجليزي',icon:'🌍',desc:'كلمات، قواعد، ترجمة'},
+{key:'finance',name:'تمويل ومالية',icon:'💰',desc:'خصومات، فوائد، استثمار'},
+{key:'science',name:'علوم وطبيعة',icon:'🔬',desc:'أحياء، كيمياء، جيولوجيا'},
+{key:'stats',name:'إحصاء واحتمالات',icon:'📊',desc:'متوسطات، توزيعات'},
+{key:'flight',name:'طيران وفضاء',icon:'✈️',desc:'ديناميكا هوائية'},
+{key:'iq',name:'ذكاء وتفكير',icon:'🧩',desc:'أنماط، منطق، ألغاز'}];
+
+var QB={generate:function(key,level){switch(key){case'math':return this.math(level);case'physics':return this.physics(level);case'arabic':return this.arabic(level);case'english':return this.english(level);case'finance':return this.finance(level);case'science':return this.science(level);case'stats':return this.stats(level);case'flight':return this.flight(level);case'iq':return this.iq(level);default:return[]}},
 _q:function(icon,text,opts,ans,type,hint){var items=[];for(var i=0;i<opts.length;i++)items.push({i:i,o:opts[i]});shuffle(items);var newAns=0;for(var i=0;i<items.length;i++){if(items[i].i===ans){newAns=i;break}}var options=[];for(var i=0;i<items.length;i++)options.push(items[i].o);return{icon:icon,text:text,options:options,ans:newAns,type:type,hint:hint||null}},
 
 math:function(lv){var qs=[];var me=this;
-var nm=['أحمد','سارة','خالد','نورة','محمد','فاطمة','عمر','ريم','يوسف','لينا'];
-var gd=['دفاتر','أقلام','كتب','علب عصير','حقائب'];
+var nm=['أحمد','سارة','خالد','نورة','محمد','فاطمة','عمر','ريم','يوسف','لينا','عبدالله','مريم','حسن','هند','طارق'];
 if(lv===1){
-for(var i=0;i<150;i++){var a=ri(10,999),b=ri(10,999),s=a+b;qs.push(me._q('🧮','ما ناتج جمع العددين '+a+' و '+b+' ؟',[s+'',(s+ri(1,9))+'',(s-ri(1,9))+'',(s+ri(10,25))+''],0,'جمع','اجمع الآحاد ثم العشرات ثم المئات'))}
-for(var i=0;i<120;i++){var a=ri(100,999),b=ri(10,a-1),d=a-b;qs.push(me._q('🧮','ما ناتج طرح '+b+' من '+a+' ؟',[d+'',(d+ri(1,9))+'',Math.max(1,d-ri(1,8))+'',(a+b)+''],0,'طرح','اطرح الآحاد ثم العشرات ثم المئات'))}
-for(var i=0;i<150;i++){var a=ri(2,12),b=ri(2,12),p=a*b;qs.push(me._q('🧮','ما ناتج ضرب '+a+' في '+b+' ؟',[p+'',(p+ri(1,6))+'',Math.max(1,p-ri(1,5))+'',(a+b)+''],0,'ضرب','تذكّر جدول الضرب: '+a+' × '+b))}
-for(var i=0;i<120;i++){var b2=ri(2,12),q2=ri(2,12),a2=b2*q2;qs.push(me._q('🧮','ما ناتج قسمة '+a2+' على '+b2+' ؟',[q2+'',(q2+ri(1,3))+'',Math.max(1,q2-1)+'',b2+''],0,'قسمة','كم مرة يتكرر '+b2+' في '+a2+'؟'))}
-for(var i=0;i<200;i++){var n=ri(2,9),p=ri(3,15)*5,t=n*p,n1=nm[ri(0,9)],g=gd[ri(0,4)];qs.push(me._q('📝','اشترى '+n1+' عدد '+n+' '+g+' سعر الواحد '+p+' ريال، كم المبلغ الإجمالي الذي دفعه؟',[t+' ريال',(t+p)+' ريال',(t-p)+' ريال',(n+p)+' ريال'],0,'مسائل كلامية','اضرب عدد القطع في سعر الواحدة: '+n+' × '+p))}
-for(var i=0;i<100;i++){var l=ri(3,25),w=ri(3,15),area=l*w,per=2*(l+w);if(i%2===0)qs.push(me._q('📐','مستطيل طوله '+l+' سم وعرضه '+w+' سم. ما مساحته؟',[area+' سم²',per+' سم²',(l+w)+' سم²',(area+w)+' سم²'],0,'هندسة','المساحة = الطول × العرض'));else qs.push(me._q('📐','مستطيل طوله '+l+' سم وعرضه '+w+' سم. ما محيطه؟',[per+' سم',area+' سم',(l+w)+' سم',(per+2)+' سم'],0,'هندسة','المحيط = 2 × (الطول + العرض)'))}
-for(var i=0;i<80;i++){var base=ri(5,40)*10,pct=[10,20,25,50][ri(0,3)],val=Math.floor(base*pct/100);qs.push(me._q('💹','ما قيمة '+pct+'% من العدد '+base+' ؟',[val+'',(val+ri(1,10))+'',Math.max(1,val-ri(1,5))+'',(base-val)+''],0,'نسب مئوية','اضرب العدد في النسبة واقسم على 100'))}}
+var items=[['كتب',15,40],['أقلام',2,8],['دفاتر',5,15],['علب حليب',4,12],['كيلو تفاح',8,20],['زجاجات ماء',1,5],['علب عصير',3,10],['حقائب مدرسية',50,120],['ألعاب',20,80],['تيشيرتات',30,80]];
+for(var i=0;i<80;i++){var it=items[i%items.length];var n=ri(2,8);var p=ri(it[1],it[2]);var t=n*p;var nm1=nm[ri(0,14)];qs.push(me._q('🛒','ذهب '+nm1+' للسوق واشترى '+n+' '+it[0]+' بسعر '+p+' ريال للواحدة. كم المجموع؟',[t+' ريال',(t+p)+' ريال',(t-p)+' ريال',(n+p)+' ريال'],0,'تسوق','اضرب العدد في السعر'))}
+var vehicles=[['سيارة',80,120],['دراجة',15,30],['قطار',200,350],['حافلة مدرسية',40,60]];
+for(var i=0;i<60;i++){var v=vehicles[i%vehicles.length];var spd=ri(v[1],v[2]);var t=ri(1,5);var d=spd*t;qs.push(me._q('🚗',''+v[0]+' تسير بسرعة '+spd+' كم/ساعة. كم تقطع في '+t+' ساعات؟',[d+' كم',(d+spd)+' كم',(spd+t)+' كم',(d-spd)+' كم'],0,'مسافة وزمن','المسافة = السرعة × الزمن'))}
+for(var i=0;i<50;i++){var eggs=ri(3,12);var ppl=ri(2,6);var tot=eggs*ppl;qs.push(me._q('🍳','وصفة كيكة تحتاج '+eggs+' بيضات لكل شخص. كم بيضة نحتاج لـ '+ppl+' أشخاص؟',[tot+' بيضة',(tot+eggs)+' بيضة',(eggs+ppl)+' بيضة',(tot-ppl)+' بيضة'],0,'طبخ ووصفات','اضرب عدد البيض لكل شخص في عدد الأشخاص'))}
+for(var i=0;i<50;i++){var l=ri(4,20);var w=ri(3,15);var a=l*w;var p=2*(l+w);qs.push(me._q('🏗️','غرفة طولها '+l+' متر وعرضها '+w+' متر. كم متر مربع من البلاط نحتاج لتغطية أرضيتها؟',[a+' م²',p+' م²',(l+w)+' م²',(a+l)+' م²'],0,'بناء وهندسة','مساحة المستطيل = الطول × العرض'))}
+for(var i=0;i<50;i++){var total=ri(4,12)*ri(3,8);var ppl=ri(2,6);while(total%ppl!==0)ppl=ri(2,6);var each=total/ppl;qs.push(me._q('🍕',''+total+' قطعة حلوى توزّع بالتساوي على '+ppl+' أطفال. كم يحصل كل طفل؟',[each+' قطعة',(each+1)+' قطعة',(each-1)+' قطعة',total+' قطعة'],0,'قسمة وتوزيع','اقسم المجموع على عدد الأطفال'))}
+for(var i=0;i<50;i++){var paid=ri(5,20)*10;var cost=ri(1,paid-1);var change=paid-cost;qs.push(me._q('💵','اشتريت سلعة بـ '+cost+' ريال ودفعت '+paid+' ريال. كم الباقي؟',[change+' ريال',(change+ri(1,5))+' ريال',paid+' ريال',cost+' ريال'],0,'فكة ونقود','الباقي = المبلغ المدفوع - سعر السلعة'))}
+for(var i=0;i<40;i++){var rows=ri(3,10);var cols=ri(4,12);var tot=rows*cols;qs.push(me._q('🌱','مزارع غرس أشجاراً في '+rows+' صفوف، كل صف فيه '+cols+' شجرة. كم شجرة زرع؟',[tot+' شجرة',(tot+rows)+' شجرة',(rows+cols)+' شجرة',(tot-cols)+' شجرة'],0,'زراعة','عدد الأشجار = عدد الصفوف × عدد الأشجار في كل صف'))}
+for(var i=0;i<40;i++){var g1=ri(0,5);var g2=ri(0,5);var total=g1+g2;qs.push(me._q('⚽','في مباراة كرة قدم، سجّل الفريق '+g1+' أهداف في الشوط الأول و '+g2+' أهداف في الشوط الثاني. كم مجموع الأهداف؟',[total+'',(total+1)+'',(g1*g2)+'',Math.max(g1,g2)+''],0,'رياضة وأرقام','اجمع أهداف الشوطين'))}
+for(var i=0;i<40;i++){var s=ri(3,15);var area=s*s;var per=4*s;if(i%2===0)qs.push(me._q('🔷','مربع طول ضلعه '+s+' سم ⬜. ما مساحته؟',[area+' سم²',per+' سم²',(s+s)+' سم²',(area+s)+' سم²'],0,'أشكال هندسية','مساحة المربع = الضلع × الضلع'));else qs.push(me._q('🔷','مربع طول ضلعه '+s+' سم ⬜. ما محيطه؟',[per+' سم',area+' سم',(s+s)+' سم',(per+s)+' سم'],0,'أشكال هندسية','محيط المربع = 4 × طول الضلع'))}
+for(var i=0;i<30;i++){var full=ri(50,200);var used=ri(10,full-10);var rem=full-used;qs.push(me._q('🚰','خزان ماء فيه '+full+' لتر. استُخدم منه '+used+' لتر. كم بقي؟',[rem+' لتر',(rem+ri(1,10))+' لتر',full+' لتر',used+' لتر'],0,'حياة يومية','الباقي = الكمية الأصلية - المستخدم'))}
+for(var i=0;i<40;i++){var total=ri(2,8)*4;var frac=[2,4][ri(0,1)];var part=total/frac;var name=frac===2?'نصف':'ربع';qs.push(me._q('🥧','كعكة مقسمة إلى '+total+' قطعة. أكل أحمد '+name+'ها. كم قطعة أكل؟',[part+' قطعة',(part+1)+' قطعة',(total-1)+' قطعة',total+' قطعة'],0,'كسور',''+name+' = القسمة على '+frac))}
+}
 if(lv===2){
-for(var i=0;i<250;i++){var a=ri(2,9),x=ri(1,15),b=ri(1,20),c=a*x+b;qs.push(me._q('🔢','حل المعادلة التالية: '+a+'س + '+b+' = '+c+'. ما قيمة س؟',['س = '+x,'س = '+(x+1),'س = '+Math.max(1,x-1),'س = '+Math.floor(c/a)],0,'جبر','انقل '+b+' للطرف الآخر ثم اقسم على '+a))}
-for(var i=0;i<200;i++){var base=ri(5,50)*10,pct=ri(1,19)*5,val=Math.floor(base*pct/100);qs.push(me._q('💹','احسب قيمة '+pct+'% من العدد '+base,[val+'',(val+ri(1,15))+'',Math.max(1,val-ri(1,10))+'',(base-val)+''],0,'نسب مئوية','النسبة × العدد ÷ 100'))}
-for(var i=0;i<120;i++){var rd=ri(2,10),bl=ri(2,10),tot=rd+bl;qs.push(me._q('🎲','في كيس '+rd+' كرات حمراء و '+bl+' كرات زرقاء. ما احتمال سحب كرة حمراء؟',[rd+'/'+tot,bl+'/'+tot,rd+'/'+bl,'1/'+tot],0,'احتمالات','الاحتمال = عدد الكرات الحمراء ÷ العدد الكلي'))}
-for(var i=0;i<100;i++){var b3=ri(2,10),e=ri(2,4);var v=1;for(var j=0;j<e;j++)v*=b3;if(v<10000){var sup=['','','²','³','⁴'][e];qs.push(me._q('🔢','ما قيمة '+b3+' أس '+e+' ('+b3+sup+') ؟',[v+'',(b3*e)+'',(v+ri(1,10))+'',Math.max(1,v-ri(1,10))+''],0,'أسس','اضرب '+b3+' في نفسه '+e+' مرات'))}}
-for(var i=0;i<100;i++){var r=ri(3,20),circ=Math.floor(2*3.14159*r),area=Math.floor(3.14159*r*r);if(i%2===0)qs.push(me._q('⭕','دائرة نصف قطرها '+r+' سم. ما محيطها تقريباً؟',[circ+' سم',area+' سم',(2*r)+' سم',(circ+ri(1,5))+' سم'],0,'دوائر','المحيط = 2 × π × نصف القطر'));else qs.push(me._q('⭕','دائرة نصف قطرها '+r+' سم. ما مساحتها تقريباً؟',[area+' سم²',circ+' سم²',(r*r)+' سم²',(area+ri(1,10))+' سم²'],0,'دوائر','المساحة = π × نصف القطر²'))}}
+for(var i=0;i<80;i++){var x=ri(2,15);var a=ri(2,8);var b=ri(1,20);var c=a*x+b;qs.push(me._q('🔢','حل المعادلة: '+a+'س + '+b+' = '+c+'. ما قيمة س؟',['س = '+x,'س = '+(x+1),'س = '+Math.max(1,x-1),'س = '+(a+b)],0,'جبر','انقل '+b+' للطرف الآخر واقسم على '+a))}
+for(var i=0;i<60;i++){var pricePer=ri(5,30);var fixed=ri(10,50);var budget=ri(100,300);var maxItems=Math.floor((budget-fixed)/pricePer);qs.push(me._q('💡','لديك '+budget+' ريال. رسوم التوصيل '+fixed+' ريال وسعر القطعة '+pricePer+' ريال. كم قطعة يمكنك شراؤها كحد أقصى؟',[maxItems+' قطعة',(maxItems+1)+' قطعة',(maxItems-1)+' قطعة',Math.floor(budget/pricePer)+' قطعة'],0,'تطبيقات الجبر','أقصى عدد = (الميزانية - التوصيل) ÷ سعر القطعة'))}
+for(var i=0;i<60;i++){var original=ri(10,50)*10;var disc=[10,15,20,25,30,40,50][ri(0,6)];var saved=Math.floor(original*disc/100);var final_=original-saved;qs.push(me._q('🏷️','سعر جهاز '+original+' ريال وعليه تخفيض '+disc+'%. كم توفر؟',[saved+' ريال',final_+' ريال',(saved+10)+' ريال',original+' ريال'],0,'تخفيضات','المبلغ الموفر = السعر × نسبة الخصم ÷ 100'))}
+for(var i=0;i<50;i++){var r=ri(3,20);var circ=Math.floor(2*3.14*r);var area=Math.floor(3.14*r*r);if(i%2===0)qs.push(me._q('⭕','حوض سباحة دائري نصف قطره '+r+' متر. ما محيطه تقريباً؟ ⭕',[circ+' متر',area+' متر',(2*r)+' متر',(circ+5)+' متر'],0,'دوائر','المحيط = 2 × π × نصف القطر'));else qs.push(me._q('⭕','حديقة دائرية نصف قطرها '+r+' متر. ما مساحتها تقريباً؟ ⭕',[area+' م²',circ+' م²',(r*r)+' م²',(area+10)+' م²'],0,'دوائر','المساحة = π × نصف القطر²'))}
+for(var i=0;i<50;i++){var rd=ri(2,10);var bl=ri(2,10);var tot=rd+bl;qs.push(me._q('🎲','في كيس '+rd+' كرات حمراء و '+bl+' زرقاء. ما احتمال سحب حمراء؟',[rd+'/'+tot,bl+'/'+tot,rd+'/'+bl,'1/'+tot],0,'احتمالات','الاحتمال = المطلوب ÷ الكل'))}
+for(var i=0;i<40;i++){var b=ri(2,10);var e=ri(2,4);var v=1;for(var j=0;j<e;j++)v*=b;if(v<10000){var sup=['','','²','³','⁴'][e];qs.push(me._q('🔢','ما قيمة '+b+sup+' ؟',[v+'',(b*e)+'',(v+ri(1,10))+'',Math.max(1,v-ri(1,10))+''],0,'أسس','اضرب '+b+' في نفسه '+e+' مرات'))}}
+var pyth=[[3,4,5],[5,12,13],[6,8,10],[8,15,17],[9,12,15]];
+for(var i=0;i<30;i++){var t=pyth[i%pyth.length];qs.push(me._q('📐','سلّم طوله '+t[2]+' م مسند على حائط. إذا كانت قاعدته تبعد '+t[0]+' م عن الحائط، كم يصل ارتفاعه على الحائط؟ 📐',[t[1]+' م',t[2]+' م',(t[0]+t[1])+' م',(t[2]-t[0])+' م'],0,'فيثاغورس','الارتفاع² = الوتر² - القاعدة²'))}
+}
 if(lv===3){
-for(var i=0;i<150;i++){var a=ri(1,9),n=ri(2,5),da=a*n,dn=n-1;var sup=['','','²','³','⁴','⁵'];var ds=dn===1?'س':'س'+sup[dn];qs.push(me._q('📈','ما المشتقة الأولى للدالة: د(س) = '+a+'س'+sup[n]+' ؟',[da+ds,a+ds,da+'س'+sup[n],n+ds],0,'تفاضل','القاعدة: مشتقة aسⁿ = naسⁿ⁻¹'))}
-for(var i=0;i<120;i++){var a1=ri(1,10),d=ri(2,8),n=ri(8,20),an=a1+(n-1)*d;qs.push(me._q('🔢','في متتابعة حسابية حدها الأول '+a1+' وأساسها '+d+'. ما الحد رقم '+n+'؟',[an+'',(an+d)+'',(an-d)+'',(a1*n)+''],0,'متتابعات','الحد النوني = الحد الأول + (ن-1) × الأساس'))}
-for(var i=0;i<100;i++){var n2=ri(4,10),k=ri(2,Math.min(n2-1,4));var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var c2=f(n2)/(f(k)*f(n2-k));qs.push(me._q('🎯','كم عدد طرق اختيار '+k+' أشخاص من مجموعة '+n2+' أشخاص؟',[c2+'',(c2+ri(1,10))+'',Math.max(1,c2-ri(1,10))+'',(n2*k)+''],0,'توافيق','التوافيق = ن! ÷ (ك! × (ن-ك)!)'))}
-for(var i=0;i<80;i++){var a=ri(1,8),b=ri(1,15);qs.push(me._q('📈','ما قيمة النهاية: نها عندما س→∞ لـ ('+a+'س+'+b+')/(س+1) ؟',[a+'',b+'',(a+b)+'','∞'],0,'نهايات','عندما س→∞ نقسم على أعلى أس'))}}
+for(var i=0;i<60;i++){var a=ri(1,8);var n=ri(2,5);var da=a*n;var dn=n-1;var sup=['','','²','³','⁴','⁵'];var ds=dn===1?'س':'س'+sup[dn];qs.push(me._q('📈','ما المشتقة الأولى: د(س) = '+a+'س'+sup[n]+' ؟',[da+ds,a+ds,da+'س'+sup[n],n+ds],0,'تفاضل','القاعدة: مشتقة aسⁿ = naسⁿ⁻¹'))}
+for(var i=0;i<60;i++){var a1=ri(1,10);var d=ri(2,8);var n=ri(8,20);var an=a1+(n-1)*d;qs.push(me._q('🔢','متتابعة حسابية حدها الأول '+a1+' وأساسها '+d+'. ما الحد رقم '+n+'؟',[an+'',(an+d)+'',(an-d)+'',(a1*n)+''],0,'متتابعات','الحد = الأول + (ن-1) × الأساس'))}
+for(var i=0;i<50;i++){var n2=ri(4,10);var k=ri(2,Math.min(n2-1,4));var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var c2=f(n2)/(f(k)*f(n2-k));qs.push(me._q('🎯','كم طريقة لاختيار '+k+' من '+n2+' أشخاص؟',[c2+'',(c2+ri(1,10))+'',(n2*k)+'',(Math.floor(c2/2))+''],0,'توافيق','ن! ÷ (ك! × (ن-ك)!)'))}
+for(var i=0;i<40;i++){var a=ri(1,8);var b=ri(1,15);qs.push(me._q('📈','نها عندما س→∞ لـ ('+a+'س+'+b+')/(س+1) ؟',[a+'',b+'',(a+b)+'','∞'],0,'نهايات','نقسم على أعلى أس'))}
+}
 return shuffle(qs)},
 
+arabic:function(lv){var qs=[];var me=this;
+if(lv===1){
+var vocab=[
+['🦁 ما اسم هذا الحيوان في العربية الفصحى؟','أسد','نمر','فهد','ذئب'],
+['🐪 ما اسم هذا الحيوان الذي يعيش في الصحراء؟','جمل','حصان','غزال','ثعلب'],
+['🌙 ما جمع كلمة (قمر)؟','أقمار','قمور','أقمر','قمران'],
+['⭐ ما جمع كلمة (نجم)؟','نجوم','أنجام','نجمات','نجمان'],
+['🌳 ما جمع كلمة (شجرة)؟','أشجار','شجرات','شجور','أشجر'],
+['🏠 ما جمع كلمة (بيت)؟','بيوت','أبيات','بيتان','بيتات'],
+['📚 ما جمع كلمة (كتاب)؟','كتب','كتابات','كتبان','أكتاب'],
+['🌊 ما مفرد كلمة (بحار)؟','بحر','بحرة','بحيرة','بحور'],
+['🏔️ ما مفرد كلمة (جبال)؟','جبل','جبلة','جبيل','جبال'],
+['🌺 ما مفرد كلمة (أزهار)؟','زهرة','زهور','أزهر','زهران'],
+['✏️ ما ضد كلمة (طويل)؟','قصير','عريض','كبير','ضيق'],
+['☀️ ما ضد كلمة (نهار)؟','ليل','صباح','غروب','شروق'],
+['😊 ما ضد كلمة (فرح)؟','حزن','غضب','خوف','ملل'],
+['🔥 ما ضد كلمة (حار)؟','بارد','دافئ','معتدل','رطب'],
+['💨 ما ضد كلمة (سريع)؟','بطيء','قوي','خفيف','ثقيل'],
+['🐘 أي حيوان يُوصف بالذاكرة القوية في الأمثال العربية؟','الفيل','الأسد','النسر','الحصان'],
+['🐜 أي حيوان يُضرب به المثل في الاجتهاد والعمل؟','النملة','النحلة','العنكبوت','الفراشة'],
+['🦅 أي طائر يرمز للقوة والحرية في الثقافة العربية؟','النسر','الحمامة','البلبل','الغراب'],
+['🌹 ما معنى كلمة (وردة) بالإنجليزية؟','Rose','Flower','Lily','Tulip'],
+['🍎 أكمل: التفاحة _____ من البرتقالة (حجماً)','أصغر','أكبر','أطول','أعرض']];
+for(var v=0;v<vocab.length;v++){for(var k=0;k<6;k++)qs.push(me._q('📖',vocab[v][0],[vocab[v][1],vocab[v][2],vocab[v][3],vocab[v][4]],0,'مفردات','فكّر في المعنى المناسب'))}
+var grammar=[
+['🔤 ما نوع كلمة (كتب) في الجملة: كتب الطالب الدرس؟','فعل ماضٍ','اسم','حرف','فعل مضارع'],
+['🔤 ما نوع كلمة (يلعب) في: يلعب الولد بالكرة؟','فعل مضارع','فعل ماضٍ','اسم','حرف'],
+['🔤 ما نوع الجملة: الشمس ساطعة ☀️؟','جملة اسمية','جملة فعلية','شبه جملة','جملة استفهامية'],
+['🔤 ما نوع الجملة: طلعت الشمس ☀️؟','جملة فعلية','جملة اسمية','شبه جملة','جملة تعجبية'],
+['📝 أين الخطأ الإملائي: ذهب أحمد إلى المدرسة ليتعلم؟','لا يوجد خطأ','ذهب → دهب','إلى → الى','المدرسة → المدرسه'],
+['📝 ما الكتابة الصحيحة؟','مدرسة','مدرسه','مدرصة','مدرسا'],
+['📝 ما الكتابة الصحيحة؟','هذه','هاذه','هذة','هذهي'],
+['📝 التاء المربوطة في كلمة (مدرسة) تُنطق عند الوقف؟','هاء','تاء','لا تُنطق','ألف'],
+['🔤 ما إعراب كلمة (الولدُ) في: جاء الولدُ؟','فاعل مرفوع','مفعول به','مبتدأ','خبر'],
+['🔤 حروف الجر هي: من، إلى، عن، على، في ... أيها ليس حرف جر؟','ثم','في','من','على']];
+for(var g=0;g<grammar.length;g++){for(var k=0;k<8;k++)qs.push(me._q('📖',grammar[g][0],[grammar[g][1],grammar[g][2],grammar[g][3],grammar[g][4]],0,'نحو وإملاء','تذكّر القواعد الأساسية'))}
+}
+if(lv===2){
+var adv=[
+['🎭 ما المحسن البديعي في: الصبر مفتاح الفرج؟','استعارة','تشبيه','جناس','طباق'],
+['🎭 ما نوع الصورة في: الجندي أسد في المعركة؟','تشبيه','استعارة','كناية','مجاز'],
+['🎭 ما العلاقة بين (ليل ونهار)؟','طباق','ترادف','جناس','سجع'],
+['🎭 ما العلاقة بين (سعيد وفرحان)؟','ترادف','طباق','جناس','سجع'],
+['📖 من هو شاعر المعلقات صاحب معلقة: قِفا نبكِ؟','امرؤ القيس','زهير بن أبي سلمى','عنترة','طرفة بن العبد'],
+['📖 من هو صاحب قصيدة نهج البردة؟','أحمد شوقي','حافظ إبراهيم','المتنبي','البحتري'],
+['🔤 ما وزن كلمة (كاتب) الصرفي؟','فاعل','فعيل','مفعول','فعّال'],
+['🔤 ما اسم الفاعل من الفعل (درس)؟','دارس','مدروس','دراسة','تدريس'],
+['🔤 ما اسم المفعول من الفعل (كتب)؟','مكتوب','كاتب','كتابة','مكتبة'],
+['🔤 أي من التالي فعل أمر؟','اقرأ','يقرأ','قرأ','قارئ']];
+for(var a=0;a<adv.length;a++){for(var k=0;k<10;k++)qs.push(me._q('📖',adv[a][0],[adv[a][1],adv[a][2],adv[a][3],adv[a][4]],0,'بلاغة ونحو','تأمل في البنية اللغوية'))}
+}
+if(lv===3){
+var pro=[
+['📖 ما إعراب (لن) في: لن أتأخرَ؟','حرف نصب','حرف جر','حرف جزم','حرف عطف'],
+['📖 ما نوع (لا) في: لا تكذبْ؟','ناهية جازمة','نافية','نافية للجنس','عاطفة'],
+['📖 ما نوع (ما) في: ما أجملَ السماءَ!؟','تعجبية','نافية','موصولة','استفهامية'],
+['📖 (إنّ) وأخواتها تدخل على الجملة الاسمية فماذا تفعل؟','تنصب المبتدأ وترفع الخبر','ترفع المبتدأ وتنصب الخبر','تجزم المبتدأ','لا تغير شيئاً'],
+['📖 كان وأخواتها تدخل على الجملة الاسمية فماذا تفعل؟','ترفع المبتدأ (اسمها) وتنصب الخبر (خبرها)','تنصب المبتدأ وترفع الخبر','تجر المبتدأ','تجزم الخبر'],
+['🎭 ما البحر الشعري في: مستفعلن فاعلن مستفعلن فاعلن؟','البسيط','الطويل','الكامل','الوافر'],
+['📖 ما الفرق بين (إن) المكسورة و(أنّ) المفتوحة؟','إنّ تبدأ الجملة، أنّ تأتي في وسطها','لا فرق بينهما','إنّ للنفي وأنّ للإثبات','إنّ شرطية وأنّ تأكيدية'],
+['📖 ما المصدر من الفعل (استخرج)؟','استخراج','خروج','إخراج','تخريج'],
+['📖 ما الفرق بين الهمزة في (أكل) و(إبراهيم)؟','الأولى همزة قطع والثانية همزة وصل — العكس! إبراهيم همزة قطع','كلاهما همزة قطع','كلاهما همزة وصل','لا فرق'],
+['📖 في أي حالة يُكتب الألف المقصورة على صورة ياء (ى)؟','في الأفعال الثلاثية إذا كان أصلها ياء','دائماً','في الأسماء فقط','إذا كان أصلها واو']];
+for(var p=0;p<pro.length;p++){for(var k=0;k<12;k++)qs.push(me._q('📖',pro[p][0],[pro[p][1],pro[p][2],pro[p][3],pro[p][4]],0,'نحو متقدم','راجع القواعد النحوية'))}
+}
+return shuffle(qs)},
+
+english:function(lv){var qs=[];var me=this;
+if(lv===1){
+var eng=[
+['🐱 What is this animal called? (قطة)','Cat','Dog','Bird','Fish'],
+['🐕 What is this animal called? (كلب)','Dog','Cat','Horse','Cow'],
+['🌞 What does the Sun give us? ماذا تعطينا الشمس؟','Light and heat / نور وحرارة','Water / ماء','Food / طعام','Air / هواء'],
+['🍎 What color is an apple? ما لون التفاحة؟','Red / أحمر','Blue / أزرق','Green only / أخضر فقط','Yellow / أصفر'],
+['📅 How many days are in a week? كم يوماً في الأسبوع؟','7 / سبعة','5 / خمسة','6 / ستة','10 / عشرة'],
+['🕐 What comes after Monday? ماذا يأتي بعد الاثنين؟','Tuesday / الثلاثاء','Wednesday / الأربعاء','Sunday / الأحد','Friday / الجمعة'],
+['🌈 How many colors in a rainbow? كم لوناً في قوس قزح؟','7 / سبعة','5 / خمسة','6 / ستة','3 / ثلاثة'],
+['👨‍👩‍👧‍👦 What is (أخ) in English?','Brother','Sister','Father','Mother'],
+['👩 What is (أم) in English?','Mother','Father','Sister','Aunt'],
+['🏫 What is (مدرسة) in English?','School','Hospital','House','Market'],
+['📖 What is (كتاب) in English?','Book','Pen','Note','Paper'],
+['✏️ What is (قلم) in English?','Pen','Book','Ruler','Eraser'],
+['🚗 What is (سيارة) in English?','Car','Bus','Plane','Train'],
+['🏠 What is (بيت) in English?','House','School','Shop','Garden'],
+['💧 What is (ماء) in English?','Water','Juice','Milk','Tea'],
+['🍞 What is (خبز) in English?','Bread','Rice','Meat','Cheese'],
+['👁️ What is (عين) in English?','Eye','Ear','Nose','Mouth'],
+['👂 What is (أذن) in English?','Ear','Eye','Hand','Head'],
+['🤚 What is (يد) in English?','Hand','Foot','Arm','Leg'],
+['😊 What is (سعيد) in English?','Happy','Sad','Angry','Tired']];
+for(var e=0;e<eng.length;e++){for(var k=0;k<6;k++)qs.push(me._q('🌍',eng[e][0],[eng[e][1],eng[e][2],eng[e][3],eng[e][4]],0,'مفردات إنجليزية','تذكّر الترجمة الصحيحة'))}
+}
+if(lv===2){
+var eng2=[
+['📝 Choose correct: She ___ to school every day','goes','go','going','gone'],
+['📝 Choose correct: They ___ playing football now','are','is','was','be'],
+['📝 Choose correct: He ___ his homework yesterday','did','does','do','doing'],
+['📝 Past tense of (go): ماضي go','went','goed','gone','going'],
+['📝 Past tense of (eat): ماضي eat','ate','eated','eaten','eating'],
+['📝 Past tense of (write): ماضي write','wrote','writed','written','writing'],
+['📝 Opposite of (big): عكس كبير','small','tall','long','wide'],
+['📝 Opposite of (hot): عكس حار','cold','warm','cool','wet'],
+['📝 Opposite of (fast): عكس سريع','slow','quick','strong','weak'],
+['📝 Plural of (child): جمع طفل','children','childs','childen','childrens'],
+['📝 Plural of (man): جمع رجل','men','mans','mens','man'],
+['📝 Plural of (tooth): جمع سن','teeth','tooths','teeths','toothes'],
+['🔤 What type of word is (beautiful)?','Adjective / صفة','Noun / اسم','Verb / فعل','Adverb / حال'],
+['🔤 What type of word is (quickly)?','Adverb / حال','Adjective / صفة','Noun / اسم','Verb / فعل'],
+['🌍 ترجم: The weather is nice today','الطقس جميل اليوم','الجو بارد','اليوم حار','الشمس ساطعة'],
+['🌍 ترجم: I like reading books','أحب قراءة الكتب','أقرأ كثيراً','الكتب مفيدة','القراءة ممتعة'],
+['🔤 Which sentence is correct?','I have two brothers','I have two brother','I has two brothers','I having two brothers'],
+['🔤 Which is correct?','She does not like coffee','She do not like coffee','She not like coffee','She no like coffee'],
+['📝 Complete: If it rains, I ___ stay home','will','would','am','do'],
+['📝 Complete: She is ___ than her sister','taller','more tall','tallest','most tall']];
+for(var e=0;e<eng2.length;e++){for(var k=0;k<6;k++)qs.push(me._q('🌍',eng2[e][0],[eng2[e][1],eng2[e][2],eng2[e][3],eng2[e][4]],0,'قواعد إنجليزية','تذكّر قواعد اللغة'))}
+}
+if(lv===3){
+var eng3=[
+['📝 Choose: By next year, I ___ graduated','will have','will has','would have','am having'],
+['📝 Passive: The book was ___ by the student','read','readed','reading','reads'],
+['📝 Reported speech: She said she ___ tired','was','is','were','be'],
+['🔤 What is an idiom for (very easy)?','A piece of cake','A cup of tea','Easy pie','Simple bread'],
+['🔤 "Break the ice" means:','Start a conversation / بدء محادثة','Break something / كسر شيء','Feel cold / الشعور بالبرد','Stop talking / التوقف عن الكلام'],
+['🔤 "Hit the nail on the head" means:','Exactly right / صحيح تماماً','Use a hammer / استخدم مطرقة','Make a mistake / أخطأ','Work hard / يعمل بجد'],
+['📝 Which is formal?','I would like to request...','I wanna ask...','Can I get...','Gimme...'],
+['📝 Subjunctive: I wish I ___ taller','were','was','am','be'],
+['📝 Third conditional: If I had studied, I ___','would have passed','will pass','passed','would pass'],
+['🌍 Academic word: (بحث علمي) =','Research','Search','Investigation','Study']];
+for(var e=0;e<eng3.length;e++){for(var k=0;k<12;k++)qs.push(me._q('🌍',eng3[e][0],[eng3[e][1],eng3[e][2],eng3[e][3],eng3[e][4]],0,'إنجليزي متقدم','فكّر في السياق'))}
+}
+return shuffle(qs)},
+
+science:function(lv){var qs=[];var me=this;
+if(lv===1){
+var sci1=[
+['🦴 كم عدد عظام جسم الإنسان البالغ؟','206 عظمة','300 عظمة','100 عظمة','150 عظمة'],
+['❤️ ما العضو الذي يضخ الدم في جسم الإنسان؟','القلب','الرئة','الكبد','الكلية'],
+['🧠 ما أكبر عضو في جسم الإنسان؟','الجلد','الكبد','الدماغ','المعدة'],
+['🌍 ما أقرب كوكب للشمس؟','عطارد','الزهرة','الأرض','المريخ'],
+['🔴 ما الكوكب الأحمر؟','المريخ','المشتري','زحل','الزهرة'],
+['💧 ما هو الرمز الكيميائي للماء؟','H₂O','CO₂','O₂','NaCl'],
+['🌬️ ما الغاز الذي نتنفسه ويحتاجه جسمنا؟','الأكسجين','النيتروجين','ثاني أكسيد الكربون','الهيدروجين'],
+['🌿 ما العملية التي تصنع بها النباتات غذاءها؟','البناء الضوئي','التنفس','التبخر','التكاثر'],
+['🌋 ما المادة المنصهرة التي تخرج من البركان؟','الحمم / اللافا','الماء','الرمل','الصخور'],
+['💎 ما أصلب مادة طبيعية على وجه الأرض؟','الألماس','الحديد','الذهب','الصخر'],
+['🧲 أي معدن ينجذب للمغناطيس؟','الحديد','الألمنيوم','النحاس','الذهب'],
+['🌡️ عند أي درجة يتجمد الماء؟','صفر درجة مئوية','100 درجة','50 درجة','-10 درجات'],
+['🦕 متى انقرضت الديناصورات تقريباً؟','قبل 65 مليون سنة','قبل ألف سنة','قبل مليون سنة','قبل 10 آلاف سنة'],
+['🐝 ماذا يصنع النحل؟','العسل','الحرير','الشمع فقط','اللبن'],
+['🌊 ما نسبة الماء تقريباً على سطح الأرض؟','71%','50%','30%','90%']];
+for(var s=0;s<sci1.length;s++){for(var k=0;k<8;k++)qs.push(me._q('🔬',sci1[s][0],[sci1[s][1],sci1[s][2],sci1[s][3],sci1[s][4]],0,'علوم عامة','فكّر في المعلومة العلمية'))}
+}
+if(lv===2){
+var sci2=[
+['⚗️ ما الرقم الهيدروجيني pH للماء النقي؟','7','0','14','5'],
+['⚗️ ما الغاز الناتج عن تفاعل الخل مع بيكربونات الصوديوم؟','ثاني أكسيد الكربون CO₂','الأكسجين O₂','الهيدروجين H₂','النيتروجين N₂'],
+['🧬 ما الحمض النووي الذي يحمل المعلومات الوراثية؟','DNA','RNA','ATP','ADP'],
+['🔬 ما أصغر وحدة بناء في الكائن الحي؟','الخلية','الذرة','الجزيء','النسيج'],
+['⚡ ما نوع الطاقة المخزنة في البطارية؟','طاقة كيميائية','طاقة حركية','طاقة نووية','طاقة حرارية'],
+['🌍 ما السبب الرئيسي لتعاقب الفصول الأربعة؟','ميل محور الأرض أثناء دورانها حول الشمس','بُعد الأرض عن الشمس','دوران القمر','سرعة الرياح'],
+['🌙 ما سبب حدوث المد والجزر؟','جاذبية القمر','دوران الأرض','حرارة الشمس','الرياح'],
+['🧪 ما العنصر الأكثر وفرة في القشرة الأرضية؟','الأكسجين','السيليكون','الحديد','الألمنيوم'],
+['🔋 في التمثيل الضوئي، النبات يمتص ___ ويُخرج ___','CO₂ ويخرج O₂','O₂ ويخرج CO₂','N₂ ويخرج O₂','H₂O ويخرج CO₂'],
+['🩸 ما فصيلة الدم التي تُعتبر المعطي العام؟','O-','AB+','A+','B-']];
+for(var s=0;s<sci2.length;s++){for(var k=0;k<12;k++)qs.push(me._q('🔬',sci2[s][0],[sci2[s][1],sci2[s][2],sci2[s][3],sci2[s][4]],0,'علوم متوسطة','تذكّر المفاهيم العلمية'))}
+}
+if(lv===3){
+var sci3=[
+['⚛️ ما عدد إلكترونات ذرة الكربون؟','6','12','8','4'],
+['⚛️ ما نوع الرابطة في جزيء NaCl؟','رابطة أيونية','رابطة تساهمية','رابطة فلزية','رابطة هيدروجينية'],
+['🧬 كم كروموسوم في الخلية البشرية الطبيعية؟','46','23','44','48'],
+['🔬 ما القانون: لكل فعل رد فعل مساوٍ في المقدار ومعاكس؟','قانون نيوتن الثالث','قانون نيوتن الأول','قانون نيوتن الثاني','قانون الجذب'],
+['⚗️ ما عدد أفوغادرو تقريباً؟','6.02 × 10²³','6.02 × 10²⁰','3.14 × 10²³','9.8 × 10²³'],
+['🌌 ما النظرية التي تفسر نشأة الكون؟','الانفجار العظيم','الأوتار','النسبية','الكم'],
+['⚡ معادلة أينشتاين الشهيرة E = mc² تعني أن:','الطاقة تساوي الكتلة مضروبة في مربع سرعة الضوء','الكتلة تساوي الطاقة','القوة تساوي الكتلة في التسارع','السرعة تساوي المسافة على الزمن'],
+['🧪 ما الحمض الموجود في المعدة للهضم؟','حمض الهيدروكلوريك HCl','حمض الكبريتيك H₂SO₄','حمض النيتريك HNO₃','حمض الخليك CH₃COOH'],
+['🔬 ما المبدأ الذي يقول: لا يمكن تحديد موضع وسرعة الجسيم بدقة معاً؟','مبدأ عدم اليقين لهايزنبرغ','مبدأ باولي','قانون هوك','نظرية بور'],
+['🌍 ما طبقة الغلاف الجوي التي تحمينا من الأشعة فوق البنفسجية؟','طبقة الأوزون','التروبوسفير','الميزوسفير','الثيرموسفير']];
+for(var s=0;s<sci3.length;s++){for(var k=0;k<12;k++)qs.push(me._q('🔬',sci3[s][0],[sci3[s][1],sci3[s][2],sci3[s][3],sci3[s][4]],0,'علوم متقدمة','تذكّر المفاهيم العلمية المتقدمة'))}
+}
+return shuffle(qs)},
 physics:function(lv){var qs=[];var me=this;
 if(lv===1){
-var cs=[['ما اسم القوة التي تسحب الأجسام نحو مركز الأرض؟','الجاذبية الأرضية','القوة المغناطيسية','قوة الاحتكاك','قوة الدفع'],['ما هي وحدة قياس القوة في النظام الدولي؟','النيوتن','الجول','الواط','الكيلوغرام'],['ما هي وحدة قياس الطاقة في النظام الدولي؟','الجول','النيوتن','الواط','الفولت'],['أيهما ينتقل أسرع: الضوء أم الصوت؟','الضوء أسرع بكثير','الصوت أسرع','سرعتهما متساوية','يعتمد على المكان'],['ماذا يحدث للماء النقي عند تسخينه إلى 100 درجة مئوية؟','يبدأ بالغليان والتبخر','يتجمد ويتحول لثلج','لا يتغير أبداً','يصبح أثقل وزناً'],['ما هي سرعة الضوء في الفراغ تقريباً؟','300 ألف كم في الثانية','300 كم في الثانية','30 ألف كم في الثانية','3 آلاف كم في الثانية'],['ما سرعة الصوت تقريباً في الهواء العادي؟','حوالي 340 متر في الثانية','340 كم في الثانية','34 متر في الثانية','3400 متر في الثانية'],['أي المواد التالية يوصل الكهرباء بشكل جيد؟','النحاس (معدن)','الخشب','البلاستيك','المطاط'],['كيف تنتقل حرارة الشمس إلى الأرض عبر الفضاء؟','بالإشعاع الحراري','بالتوصيل المباشر','بتيارات الحمل','بالتبخير'],['لماذا نرى البرق قبل أن نسمع صوت الرعد؟','لأن الضوء أسرع من الصوت','لأن البرق يحدث أولاً','لأن الأذن أبطأ من العين','بسبب المسافة فقط']];
-for(var c=0;c<cs.length;c++){for(var k=0;k<12;k++)qs.push(me._q('⚛️',cs[c][0],[cs[c][1],cs[c][2],cs[c][3],cs[c][4]],0,'مفاهيم أساسية','فكّر في الخاصية الفيزيائية المرتبطة بالسؤال'))}
-for(var i=0;i<200;i++){var m=ri(2,30),a=ri(1,10),f=m*a;qs.push(me._q('💪','جسم كتلته '+m+' كجم يتحرك بتسارع '+a+' م/ث². ما مقدار القوة المؤثرة عليه؟',[f+' نيوتن',(m+a)+' نيوتن',(f+ri(1,10))+' نيوتن',m+' نيوتن'],0,'قوة ونيوتن','القوة = الكتلة × التسارع (ق = ك × ت)'))}
-for(var i=0;i<200;i++){var m=ri(5,100),w=m*10;qs.push(me._q('⚖️','جسم كتلته '+m+' كجم على سطح الأرض. كم يبلغ وزنه؟ (تسارع الجاذبية = 10)',[w+' نيوتن',m+' نيوتن',(w+10)+' نيوتن',(m*100)+' نيوتن'],0,'وزن وكتلة','الوزن = الكتلة × تسارع الجاذبية'))}}
+var ph1=[
+['⚡ لماذا نرى البرق قبل سماع الرعد؟','لأن الضوء أسرع من الصوت','لأن البرق يحدث أولاً','بسبب المسافة','لأن الأذن أبطأ'],
+['🧲 كيف يعمل المغناطيس في الثلاجة؟','يولّد مجال مغناطيسي يجذب الحديد','يستخدم غراء خاص','بسبب الجاذبية','بسبب الكهرباء'],
+['🚗 لماذا نرتدي حزام الأمان في السيارة؟','لأن الجسم يستمر بالحركة عند التوقف المفاجئ (قانون نيوتن الأول)','لأنه إلزامي فقط','لتثبيت الجسم','للزينة'],
+['⚽ لماذا تتوقف الكرة بعد ركلها على الأرض؟','بسبب قوة الاحتكاك مع الأرض والهواء','لأن القوة نفدت','بسبب الجاذبية فقط','لأنها تفقد هواءها'],
+['🌡️ كيف يعمل ميزان الحرارة الزئبقي؟','الزئبق يتمدد بالحرارة ويرتفع في الأنبوب','يحسب حرارة الهواء إلكترونياً','بالبطارية','بالضغط'],
+['💡 كيف تعمل المصابيح الكهربائية المتوهجة؟','تيار كهربائي يسخّن سلك فيتوهج','المصباح يحترق','الغاز يشتعل','المغناطيسية'],
+['🌈 كيف يتكون قوس قزح في السماء؟','أشعة الشمس تتحلل عبر قطرات المطر','السحب الملونة','انعكاس البحر','بسبب القمر'],
+['🎈 لماذا يطفو البالون المملوء بالهيليوم؟','لأن الهيليوم أخف من الهواء','بسبب المغناطيسية','لأن البالون مطاطي','بسبب الكهرباء'],
+['🏊 لماذا يطفو الجليد على سطح الماء؟','لأن كثافة الجليد أقل من كثافة الماء','لأنه بارد','لأنه خفيف جداً','بسبب الرياح'],
+['🔊 لماذا لا ينتقل الصوت في الفضاء الخارجي؟','لأنه لا يوجد هواء (وسط) ينقل الاهتزازات','لأنه بارد جداً','بسبب الجاذبية','لأن المسافة كبيرة']];
+for(var p=0;p<ph1.length;p++){for(var k=0;k<10;k++)qs.push(me._q('⚛️',ph1[p][0],[ph1[p][1],ph1[p][2],ph1[p][3],ph1[p][4]],0,'فيزياء حياتية','فكّر في المبدأ الفيزيائي'))}
+for(var i=0;i<60;i++){var m=ri(2,30);var a=ri(1,10);var f=m*a;qs.push(me._q('💪','سيارة كتلتها '+m+' طن تتسارع بمقدار '+a+' م/ث². كم القوة المحركة؟',[f+' كيلونيوتن',(m+a)+' نيوتن',(f+10)+' نيوتن',m+' نيوتن'],0,'قانون نيوتن','القوة = الكتلة × التسارع'))}
+for(var i=0;i<60;i++){var m=ri(5,80);var w=m*10;qs.push(me._q('⚖️','حقيبة كتلتها '+m+' كجم. كم وزنها على الأرض؟ (ج = 10)',[w+' نيوتن',m+' نيوتن',(w+10)+' نيوتن',(m*100)+' نيوتن'],0,'وزن وجاذبية','الوزن = الكتلة × الجاذبية'))}
+}
 if(lv===2){
-for(var i=0;i<200;i++){var m=ri(1,20),v=ri(2,10),ke=Math.round(.5*m*v*v);qs.push(me._q('⚡','جسم كتلته '+m+' كجم يتحرك بسرعة '+v+' م/ث. ما طاقته الحركية؟',[ke+' جول',(m*v)+' جول',(ke+ri(1,20))+' جول',(2*ke)+' جول'],0,'طاقة حركية','الطاقة الحركية = ½ × الكتلة × مربع السرعة'))}
-for(var i=0;i<200;i++){var m=ri(1,15),h=ri(2,25),pe=m*10*h;qs.push(me._q('🏔️','جسم كتلته '+m+' كجم مرفوع لارتفاع '+h+' متر. ما طاقة وضعه؟ (ج = 10)',[pe+' جول',(m*h)+' جول',(pe+50)+' جول',(m+h)+' جول'],0,'طاقة وضع','طاقة الوضع = الكتلة × الجاذبية × الارتفاع'))}
-for(var i=0;i<200;i++){var v=ri(5,50),ii=ri(1,10);if(v%ii!==0)continue;var r=v/ii;qs.push(me._q('🔌','دائرة كهربائية فرق جهدها '+v+' فولت وشدة تيارها '+ii+' أمبير. ما مقاومتها؟',[r+' أوم',(v*ii)+' أوم',(v+ii)+' أوم',(r+ri(1,5))+' أوم'],0,'قانون أوم','المقاومة = فرق الجهد ÷ شدة التيار (م = ج ÷ ت)'))}
-for(var i=0;i<200;i++){var f=ri(100,1000),wl=ri(1,10),v=f*wl;qs.push(me._q('🌊','موجة ترددها '+f+' هرتز وطول موجتها '+wl+' متر. ما سرعتها؟',[v+' م/ث',(f+wl)+' م/ث',f+' م/ث',(v+ri(10,100))+' م/ث'],0,'موجات','سرعة الموجة = التردد × طول الموجة'))}}
+for(var i=0;i<60;i++){var m=ri(1,20);var v=ri(2,10);var ke=Math.round(.5*m*v*v);qs.push(me._q('⚡','كرة كتلتها '+m+' كجم تتدحرج بسرعة '+v+' م/ث. ما طاقتها الحركية؟',[ke+' جول',(m*v)+' جول',(ke+20)+' جول',(2*ke)+' جول'],0,'طاقة حركية','ط.ح = ½ × ك × ع²'))}
+for(var i=0;i<60;i++){var v=ri(10,50);var ii=ri(1,10);if(v%ii!==0)continue;var r=v/ii;qs.push(me._q('🔌','شاحن هاتف فرق جهده '+v+' فولت وتياره '+ii+' أمبير. ما مقاومته؟',[r+' أوم',(v*ii)+' أوم',(v+ii)+' أوم',(r+ri(1,5))+' أوم'],0,'قانون أوم','المقاومة = الجهد ÷ التيار'))}
+for(var i=0;i<50;i++){var m=ri(1,15);var h=ri(2,25);var pe=m*10*h;qs.push(me._q('🏔️','رافعة ترفع صندوقاً كتلته '+m+' كجم لارتفاع '+h+' متر. كم طاقة الوضع؟',[pe+' جول',(m*h)+' جول',(pe+50)+' جول',(m+h)+' جول'],0,'طاقة وضع','ط.و = ك × ج × ع'))}
+var ph2c=[
+['🔌 ما هي وحدة قياس القدرة الكهربائية؟','واط','فولت','أمبير','أوم'],
+['🌊 كيف تعمل أفران الميكروويف؟','تهز جزيئات الماء في الطعام فتسخنه','تحرق الطعام','تستخدم أشعة الشمس','بالبخار'],
+['📱 كيف تعمل شاشات الهواتف الذكية باللمس؟','تستشعر التغير في المجال الكهربائي عند لمس الإصبع','بالمغناطيس','بالحرارة فقط','بالصوت'],
+['🔋 كيف تعمل الخلايا الشمسية؟','تحول ضوء الشمس لكهرباء بتأثير فوتوفولتي','تسخّن الماء','تخزّن حرارة الشمس','تعكس الضوء']];
+for(var p=0;p<ph2c.length;p++){for(var k=0;k<12;k++)qs.push(me._q('⚛️',ph2c[p][0],[ph2c[p][1],ph2c[p][2],ph2c[p][3],ph2c[p][4]],0,'فيزياء تطبيقية','فكّر في آلية العمل'))}
+}
 if(lv===3){
-for(var i=0;i<200;i++){var u=ri(0,30),a=ri(1,10),t=ri(1,10),v=u+a*t;qs.push(me._q('🚀','جسم سرعته الابتدائية '+u+' م/ث وتسارعه '+a+' م/ث². ما سرعته بعد '+t+' ثوانٍ؟',[v+' م/ث',(u*t)+' م/ث',(a*t)+' م/ث',(v+ri(1,10))+' م/ث'],0,'معادلات الحركة','السرعة النهائية = السرعة الابتدائية + (التسارع × الزمن)'))}
-for(var i=0;i<150;i++){var m=ri(1,10),dt=ri(5,50),q=m*4200*dt;qs.push(me._q('🌡️','كم جول نحتاج لتسخين '+m+' كجم من الماء بمقدار '+dt+' درجة مئوية؟ (الحرارة النوعية للماء = 4200)',[q+' جول',(m*dt)+' جول',(q+1000)+' جول',(4200*dt)+' جول'],0,'حرارة نوعية','الطاقة الحرارية = الكتلة × الحرارة النوعية × التغير في درجة الحرارة'))}
-for(var i=0;i<150;i++){var v2=ri(10,50),h=Math.floor(v2*v2/20);qs.push(me._q('🎯','أُطلق جسم رأسياً للأعلى بسرعة '+v2+' م/ث. ما أقصى ارتفاع يصله؟ (ج = 10)',[h+' متر',(v2*2)+' متر',(h+ri(1,10))+' متر',v2+' متر'],0,'مقذوفات','أقصى ارتفاع = مربع السرعة ÷ (2 × الجاذبية)'))}}
+for(var i=0;i<60;i++){var u=ri(0,30);var a=ri(1,10);var t=ri(1,10);var v=u+a*t;qs.push(me._q('🚀','صاروخ سرعته '+u+' م/ث وتسارعه '+a+' م/ث². ما سرعته بعد '+t+' ثوانٍ؟',[v+' م/ث',(u*t)+' م/ث',(a*t)+' م/ث',(v+10)+' م/ث'],0,'حركة','ع = ع₀ + ت×ز'))}
+for(var i=0;i<50;i++){var m=ri(1,10);var dt=ri(5,50);var q=m*4200*dt;qs.push(me._q('🌡️','كم جول لتسخين '+m+' كجم ماء بمقدار '+dt+'°C؟ (ح.ن = 4200)',[q+' جول',(m*dt)+' جول',(q+1000)+' جول',(4200*dt)+' جول'],0,'حرارة نوعية','ط = ك × ح.ن × Δد'))}
+for(var i=0;i<50;i++){var v2=ri(10,50);var h=Math.floor(v2*v2/20);qs.push(me._q('🎯','قذيفة أُطلقت بسرعة '+v2+' م/ث عمودياً. أقصى ارتفاع؟ (ج=10)',[h+' م',(v2*2)+' م',(h+10)+' م',v2+' م'],0,'مقذوفات','ع² ÷ 2ج'))}
+}
 return shuffle(qs)},
 
 finance:function(lv){var qs=[];var me=this;
 if(lv===1){
-for(var i=0;i<300;i++){var p=ri(10,200),d=[10,15,20,25,30,50][ri(0,5)],sv=Math.floor(p*d/100),fn=p-sv;qs.push(me._q('🏷️','سلعة سعرها '+p+' ريال وعليها خصم '+d+'%. كم ستدفع بعد الخصم؟',[fn+' ريال',(fn+ri(1,10))+' ريال',p+' ريال',sv+' ريال'],0,'خصومات','احسب مبلغ الخصم أولاً: '+p+' × '+d+'% = '+sv+' ريال'))}
-for(var i=0;i<200;i++){var w=ri(5,50)*5,n=ri(4,12),t=w*n;qs.push(me._q('🐷','شخص يدخر '+w+' ريال كل أسبوع. كم سيجمع بعد '+n+' أسابيع؟',[t+' ريال',(t+w)+' ريال',(t-w)+' ريال',(w+n)+' ريال'],0,'ادخار','المجموع = المبلغ الأسبوعي × عدد الأسابيع'))}
-for(var i=0;i<200;i++){var c=ri(5,30),s=c+ri(2,15),pr=s-c;qs.push(me._q('📈','تاجر اشترى سلعة بـ '+c+' ريال وباعها بـ '+s+' ريال. كم ربحه؟',[pr+' ريال',(pr+ri(1,5))+' ريال',s+' ريال',c+' ريال'],0,'ربح وخسارة','الربح = سعر البيع - سعر الشراء'))}}
+for(var i=0;i<80;i++){var p=ri(10,200);var d=[10,15,20,25,30,50][ri(0,5)];var sv=Math.floor(p*d/100);var fn=p-sv;qs.push(me._q('🏷️','سلعة بـ '+p+' ريال عليها خصم '+d+'%. كم تدفع؟',[fn+' ريال',(fn+10)+' ريال',p+' ريال',sv+' ريال'],0,'خصومات','احسب الخصم أولاً ثم اطرحه'))}
+for(var i=0;i<60;i++){var w=ri(5,50)*5;var n=ri(4,12);var t=w*n;qs.push(me._q('🐷','تدخر '+w+' ريال أسبوعياً. كم تجمع بعد '+n+' أسابيع؟',[t+' ريال',(t+w)+' ريال',(t-w)+' ريال',(w+n)+' ريال'],0,'ادخار','المجموع = المبلغ × الأسابيع'))}
+for(var i=0;i<60;i++){var c=ri(5,30);var s=c+ri(2,15);var pr=s-c;qs.push(me._q('📈','تاجر اشترى بـ '+c+' ريال وباع بـ '+s+' ريال. كم ربحه؟',[pr+' ريال',(pr+5)+' ريال',s+' ريال',c+' ريال'],0,'ربح','الربح = البيع - الشراء'))}
+}
 if(lv===2){
-for(var i=0;i<250;i++){var p=ri(5,50)*1000,r=ri(2,10),t=ri(1,5),ii=Math.floor(p*r*t/100);qs.push(me._q('🏦','أودع شخص مبلغ '+p+' ريال في البنك بفائدة بسيطة '+r+'% سنوياً لمدة '+t+' سنوات. كم الفائدة؟',[ii+' ريال',(ii+ri(100,500))+' ريال',Math.floor(p*r/100)+' ريال',(ii*2)+' ريال'],0,'فائدة بسيطة','الفائدة = المبلغ × النسبة × المدة ÷ 100'))}
-for(var i=0;i<250;i++){var o=ri(10,100)*10,inc=ri(10,50),np=Math.round(o*(100+inc)/100);qs.push(me._q('📊','سعر سلعة كان '+o+' ريال ثم ارتفع بنسبة '+inc+'%. كم السعر الجديد؟',[np+' ريال',(o+inc)+' ريال',(np+ri(1,20))+' ريال',o+' ريال'],0,'زيادة مئوية','السعر الجديد = السعر القديم × (100 + نسبة الزيادة) ÷ 100'))}
-for(var i=0;i<200;i++){var sh=ri(10,50),bp=ri(20,200),sp=bp+ri(-20,40),pr=(sp-bp)*sh;var lb=pr>=0?'ربح':'خسارة';qs.push(me._q('📉','مستثمر اشترى '+sh+' سهماً بسعر '+bp+' ريال للسهم ثم باعها بسعر '+sp+' ريال للسهم. ما النتيجة؟',[lb+' '+Math.abs(pr)+' ريال',lb+' '+Math.abs(pr+ri(10,50))+' ريال','لا ربح ولا خسارة',lb+' '+sh+' ريال'],0,'أسهم','النتيجة = (سعر البيع - سعر الشراء) × عدد الأسهم'))}}
+for(var i=0;i<80;i++){var p=ri(5,50)*1000;var r=ri(2,10);var t=ri(1,5);var ii=Math.floor(p*r*t/100);qs.push(me._q('🏦','أودعت '+p+' ريال بفائدة '+r+'% لمدة '+t+' سنوات. كم الفائدة؟',[ii+' ريال',(ii+500)+' ريال',Math.floor(p*r/100)+' ريال',(ii*2)+' ريال'],0,'فائدة بسيطة','ف = المبلغ × النسبة × المدة ÷ 100'))}
+for(var i=0;i<60;i++){var sh=ri(10,50);var bp=ri(20,200);var sp=bp+ri(-20,40);var pr=(sp-bp)*sh;var lb=pr>=0?'ربح':'خسارة';qs.push(me._q('📉','اشتريت '+sh+' سهماً بـ '+bp+' ريال وبعتها بـ '+sp+' ريال. النتيجة؟',[lb+' '+Math.abs(pr)+' ريال',lb+' '+Math.abs(pr+50)+' ريال','لا ربح ولا خسارة',lb+' '+sh+' ريال'],0,'أسهم','(البيع - الشراء) × العدد'))}
+}
 if(lv===3){
-for(var i=0;i<250;i++){var amt=ri(100,1000)*1000,zk=Math.round(amt*2.5/100);qs.push(me._q('🕌','شخص يملك مبلغ '+amt+' ريال مر عليه حول كامل. كم زكاة ماله؟ (نسبة الزكاة 2.5%)',[zk+' ريال',(zk+ri(100,500))+' ريال',Math.floor(amt/100)+' ريال',(zk*2)+' ريال'],0,'زكاة المال','الزكاة = المبلغ × 2.5 ÷ 100'))}
-for(var i=0;i<200;i++){var fx=ri(5,50)*1000,vc=ri(10,80),sp=vc+ri(10,50),be=Math.floor(fx/(sp-vc));qs.push(me._q('📈','مشروع تكاليفه الثابتة '+fx+' ريال والتكلفة المتغيرة '+vc+' ريال وسعر البيع '+sp+' ريال. كم وحدة يحتاج بيعها للتعادل؟',[be+' وحدة',(be+ri(5,20))+' وحدة',Math.floor(fx/sp)+' وحدة',(be*2)+' وحدة'],0,'نقطة التعادل','نقطة التعادل = التكاليف الثابتة ÷ (سعر البيع - التكلفة المتغيرة)'))}
-for(var i=0;i<200;i++){var sar=ri(100,5000),rates=[3.75,0.27,14.5],curs=['دولار أمريكي','يورو','جنيه مصري'],idx=ri(0,2),res=Math.round(sar/rates[idx]);qs.push(me._q('💱','كم يساوي مبلغ '+sar+' ريال سعودي بال'+curs[idx]+'؟ (سعر الصرف: 1 '+curs[idx]+' = '+rates[idx]+' ريال)',[res+' تقريباً',(res+ri(1,20))+'',(Math.max(1,res-ri(1,10)))+'',(Math.round(sar*rates[idx]))+''],0,'تحويل عملات','اقسم المبلغ بالريال على سعر الصرف'))}}
+for(var i=0;i<80;i++){var amt=ri(100,1000)*1000;var zk=Math.round(amt*2.5/100);qs.push(me._q('🕌','مبلغ '+amt+' ريال مر عليه حول. كم زكاته؟ (2.5%)',[zk+' ريال',(zk+500)+' ريال',Math.floor(amt/100)+' ريال',(zk*2)+' ريال'],0,'زكاة','المبلغ × 2.5 ÷ 100'))}
+for(var i=0;i<60;i++){var fx=ri(5,50)*1000;var vc=ri(10,80);var sp=vc+ri(10,50);var be=Math.floor(fx/(sp-vc));qs.push(me._q('📈','مشروع تكاليفه '+fx+' ريال. التكلفة المتغيرة '+vc+' وسعر البيع '+sp+'. نقطة التعادل؟',[be+' وحدة',(be+20)+' وحدة',Math.floor(fx/sp)+' وحدة',(be*2)+' وحدة'],0,'نقطة تعادل','الثابتة ÷ (البيع - المتغيرة)'))}
+}
 return shuffle(qs)},
 
 stats:function(lv){var qs=[];var me=this;
 if(lv===1){
-for(var i=0;i<300;i++){var n=ri(3,6),data=[];for(var j=0;j<n;j++)data.push(ri(10,100));var sum=0;for(var j=0;j<data.length;j++)sum+=data[j];var mean=Math.floor(sum/n);qs.push(me._q('📊','ما المتوسط الحسابي للأعداد التالية: '+data.join('، ')+' ؟',[mean+'',(mean+ri(1,5))+'',Math.max(1,mean-ri(1,5))+'',Math.max.apply(null,data)+''],0,'متوسط حسابي','اجمع كل الأعداد ثم اقسم على عددها: '+sum+' ÷ '+n))}
-for(var i=0;i<200;i++){var data=[];for(var j=0;j<5;j++)data.push(ri(1,50));data.sort(function(a,b){return a-b});qs.push(me._q('📊','ما الوسيط (القيمة في المنتصف) للأعداد: '+data.join('، ')+' ؟',[data[2]+'',data[0]+'',data[4]+'',data[1]+''],0,'وسيط','رتّب الأعداد تصاعدياً ثم خذ القيمة الوسطى'))}
-for(var i=0;i<200;i++){var tot=ri(6,20),fav=ri(1,tot-1);qs.push(me._q('🎲','في صندوق '+tot+' كرة، منها '+fav+' كرة حمراء. ما احتمال سحب كرة حمراء؟',[fav+'/'+tot,(tot-fav)+'/'+tot,'1/'+tot,fav+'/'+(fav+1)],0,'احتمال بسيط','الاحتمال = عدد النتائج المطلوبة ÷ عدد النتائج الكلية'))}}
+for(var i=0;i<80;i++){var n=ri(3,6);var data=[];for(var j=0;j<n;j++)data.push(ri(10,100));var sum=0;for(var j=0;j<data.length;j++)sum+=data[j];var mean=Math.floor(sum/n);qs.push(me._q('📊','المتوسط الحسابي لـ: '+data.join('، ')+' ؟',[mean+'',(mean+5)+'',Math.max(1,mean-5)+'',Math.max.apply(null,data)+''],0,'متوسط','مجموع القيم ÷ عددها'))}
+for(var i=0;i<60;i++){var data=[];for(var j=0;j<5;j++)data.push(ri(1,50));data.sort(function(a,b){return a-b});qs.push(me._q('📊','الوسيط (المنتصف) لـ: '+data.join('، ')+' ؟',[data[2]+'',data[0]+'',data[4]+'',data[1]+''],0,'وسيط','رتّب واختر الأوسط'))}
+for(var i=0;i<60;i++){var tot=ri(6,20);var fav=ri(1,tot-1);qs.push(me._q('🎲','صندوق فيه '+tot+' كرة، '+fav+' حمراء. احتمال سحب حمراء؟',[fav+'/'+tot,(tot-fav)+'/'+tot,'1/'+tot,fav+'/'+(fav+1)],0,'احتمال','المطلوب ÷ الكل'))}
+}
 if(lv===2){
-for(var i=0;i<300;i++){var g1=ri(60,100),w1=ri(20,40),g2=ri(60,100),w2=100-w1,wm=Math.floor((g1*w1+g2*w2)/100);qs.push(me._q('📊','طالب حصل على '+g1+' في مادة وزنها '+w1+'% و '+g2+' في مادة وزنها '+w2+'%. ما المتوسط الموزون؟',[wm+'',Math.floor((g1+g2)/2)+'',(wm+ri(1,5))+'',g1+''],0,'متوسط موزون','المتوسط الموزون = (الدرجة×الوزن + الدرجة×الوزن) ÷ 100'))}
-for(var i=0;i<300;i++){var n=ri(3,7);var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var fact=f(n);qs.push(me._q('🔢','كم عدد الطرق الممكنة لترتيب '+n+' أشخاص في صف واحد؟ ('+n+'!)',[fact+'',(fact+ri(1,10))+'',(n*n)+'',(Math.floor(fact/2))+''],0,'تباديل','عدد التباديل = '+n+'! = '+n+' × '+(n-1)+' × ... × 1'))}
-for(var i=0;i<300;i++){var n2=ri(5,10),k=ri(2,Math.min(n2-1,4));var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var c2=f(n2)/(f(k)*f(n2-k));qs.push(me._q('🎯','كم عدد طرق اختيار '+k+' عناصر من '+n2+' عناصر بدون ترتيب؟',[c2+'',(c2+ri(1,10))+'',(n2*k)+'',Math.max(1,c2-ri(1,10))+''],0,'توافيق','التوافيق = ن! ÷ (ك! × (ن-ك)!)'))}}
+for(var i=0;i<80;i++){var g1=ri(60,100);var w1=ri(20,40);var g2=ri(60,100);var w2=100-w1;var wm=Math.floor((g1*w1+g2*w2)/100);qs.push(me._q('📊','درجة '+g1+' (وزن '+w1+'%) ودرجة '+g2+' (وزن '+w2+'%). المتوسط الموزون؟',[wm+'',Math.floor((g1+g2)/2)+'',(wm+5)+'',g1+''],0,'متوسط موزون','(درجة×وزن + درجة×وزن) ÷ 100'))}
+for(var i=0;i<80;i++){var n=ri(3,7);var f=function(x){var v=1;for(var j=2;j<=x;j++)v*=j;return v};var fact=f(n);qs.push(me._q('🔢','كم طريقة لترتيب '+n+' أشخاص في صف؟ ('+n+'!)',[fact+'',(fact+10)+'',(n*n)+'',(Math.floor(fact/2))+''],0,'تباديل','ن! = ن × (ن-1) × ... × 1'))}
+}
 if(lv===3){
-var dists=[['كم نسبة البيانات ضمن انحراف معياري واحد من المتوسط في التوزيع الطبيعي؟','68%','95%','50%','99%'],['كم نسبة البيانات ضمن انحرافين معياريين من المتوسط؟','95%','68%','99%','75%'],['كم نسبة البيانات ضمن 3 انحرافات معيارية من المتوسط؟','99.7%','95%','68%','100%'],['ما شكل منحنى التوزيع الطبيعي؟','جرسي متماثل حول المتوسط','خط مستقيم صاعد','خط تصاعدي منحنٍ','مثلث متساوي الأضلاع'],['ما قيمة معامل الارتباط الطردي التام؟','+1','-1','0','0.5'],['ما قيمة معامل الارتباط العكسي التام؟','-1','+1','0','-0.5']];
-for(var d=0;d<dists.length;d++){for(var k=0;k<30;k++)qs.push(me._q('📊',dists[d][0],[dists[d][1],dists[d][2],dists[d][3],dists[d][4]],0,'توزيع طبيعي','تذكّر القاعدة التجريبية 68-95-99.7'))}
-for(var i=0;i<300;i++){var x=ri(50,100),mean=ri(60,80),sd=ri(5,15),z=Math.round((x-mean)/sd*10)/10;qs.push(me._q('📊','في توزيع طبيعي متوسطه '+mean+' وانحرافه المعياري '+sd+'. ما الدرجة المعيارية Z للقيمة '+x+'؟',['Z ≈ '+z,'Z ≈ '+(z+0.5),'Z ≈ '+(z-0.5),'Z ≈ '+(x-mean)],0,'درجة معيارية','Z = (القيمة - المتوسط) ÷ الانحراف المعياري'))}
-for(var i=0;i<300;i++){var alpha=[0.01,0.05,0.10][ri(0,2)],pv=ri(1,15)/100,rej=pv<alpha;qs.push(me._q('🔬','في اختبار فرضيات مستوى الدلالة α = '+alpha+' والقيمة الاحتمالية p = '+pv+'. ما القرار الإحصائي؟',[rej?'رفض الفرضية الصفرية':'عدم رفض الفرضية الصفرية',rej?'عدم رفض الفرضية الصفرية':'رفض الفرضية الصفرية','قبول الفرضية البديلة دائماً','إعادة التجربة'],0,'اختبار فرضيات','إذا كانت p أقل من α نرفض الفرضية الصفرية'))}}
+var st3=[['كم نسبة البيانات ضمن انحراف معياري واحد؟','68%','95%','50%','99%'],['كم نسبة البيانات ضمن انحرافين؟','95%','68%','99%','75%'],['ما شكل التوزيع الطبيعي؟','جرسي متماثل','خط مستقيم','مثلث','تصاعدي'],['معامل الارتباط الطردي التام؟','+1','-1','0','0.5'],['معامل الارتباط العكسي التام؟','-1','+1','0','-0.5']];
+for(var d=0;d<st3.length;d++){for(var k=0;k<20;k++)qs.push(me._q('📊',st3[d][0],[st3[d][1],st3[d][2],st3[d][3],st3[d][4]],0,'توزيع طبيعي','تذكّر 68-95-99.7'))}
+for(var i=0;i<80;i++){var x=ri(50,100);var mean=ri(60,80);var sd=ri(5,15);var z=Math.round((x-mean)/sd*10)/10;qs.push(me._q('📊','متوسط '+mean+' وانحراف '+sd+'. الدرجة المعيارية Z للقيمة '+x+'؟',['Z ≈ '+z,'Z ≈ '+(z+0.5),'Z ≈ '+(z-0.5),'Z ≈ '+(x-mean)],0,'درجة معيارية','Z = (القيمة - المتوسط) ÷ الانحراف'))}
+}
 return shuffle(qs)},
 
 flight:function(lv){var qs=[];var me=this;
-var core=[['كيف يولّد جناح الطائرة قوة الرفع التي تجعلها تطير؟','الهواء يتحرك أسرع فوق الجناح فيقل الضغط','الجناح مملوء بغاز خفيف يرفعه','المحرك يدفع الجناح للأعلى مباشرة','الهواء تحت الجناح يسخن ويتمدد'],['ما هي القوى الأربع الرئيسية التي تؤثر على الطائرة أثناء الطيران؟','الرفع والوزن والدفع والمقاومة','الرفع والجاذبية والاحتكاك والطرد','الدفع والسحب والمغناطيسية والضغط','الحرارة والضغط والكثافة والسرعة'],['ما المقصود بالتوقف الهوائي (Stall) في الطيران؟','فقدان مفاجئ لقوة الرفع عن الجناح','زيادة كبيرة في سرعة الطائرة','انثناء وكسر في جناح الطائرة','ارتفاع شديد في حرارة المحرك'],['كيف يستطيع الصاروخ التحرك في الفضاء حيث لا يوجد هواء؟','يدفع غازات للخلف فيتقدم للأمام (قانون نيوتن الثالث)','يدفع الهواء المتبقي حوله','يستخدم قوة مغناطيسية','يعتمد على الأشعة الشمسية'],['من هو أول إنسان سافر إلى الفضاء في التاريخ؟','يوري غاغارين عام 1961','نيل آرمسترونغ عام 1969','جون غلين عام 1962','ألان شيبرد عام 1961'],['من هو أول إنسان مشى على سطح القمر؟','نيل آرمسترونغ عام 1969','باز ألدرين عام 1969','يوري غاغارين عام 1961','مايكل كولينز عام 1969'],['ما هي سرعة الإفلات اللازمة للخروج من جاذبية الأرض؟','حوالي 11.2 كم في الثانية','حوالي 1 كم في الثانية','حوالي 100 كم في الثانية','حوالي 343 متر في الثانية'],['في أي عام نجح الأخوان رايت في أول رحلة طيران بطائرة؟','عام 1903','عام 1910','عام 1895','عام 1920'],['لماذا يكون الإقلاع أصعب في الأجواء الحارة جداً؟','لأن الهواء الساخن أقل كثافة فيقل الرفع','لأن إطارات الطائرة تلتصق بالمدرج','لأن الوقود يتبخر بسرعة','لأن المحرك يسخن ويضعف'],['لماذا تطير معظم الطائرات التجارية على ارتفاع 10 كم تقريباً؟','الهواء أقل كثافة فتقل المقاومة ويتوفر الوقود','لتجنب اصطدام الطيور','بسبب قوانين الطيران الدولية','لأن المحركات تحتاج البرودة']];
-var mult=lv===1?10:lv===2?12:16;for(var c=0;c<core.length;c++){for(var k=0;k<mult;k++)qs.push(me._q('✈️',core[c][0],[core[c][1],core[c][2],core[c][3],core[c][4]],0,'معلومات طيران','اقرأ الخيارات بتمعّن واختر الأكثر منطقية'))}
-for(var i=0;i<300;i++){var spd=ri(200,900),t=ri(1,8),d=spd*t;qs.push(me._q('✈️','طائرة تطير بسرعة ثابتة '+spd+' كم/ساعة. كم كيلومتراً تقطع في '+t+' ساعات؟',[d+' كم',(d+ri(50,200))+' كم',(spd+t)+' كم',(d-spd)+' كم'],0,'مسافة طيران','المسافة = السرعة × الزمن'))}
-for(var i=0;i<200;i++){var ft=ri(10,45)*1000,m=Math.round(ft*0.3048);qs.push(me._q('📏','طائرة تطير على ارتفاع '+ft+' قدم. كم يساوي هذا بالمتر تقريباً؟ (1 قدم ≈ 0.3 متر)',['≈ '+m+' متر','≈ '+(m+ri(100,500))+' متر','≈ '+Math.max(100,m-ri(100,300))+' متر','≈ '+ft+' متر'],0,'تحويل وحدات','اضرب عدد الأقدام في 0.3 تقريباً'))}
-if(lv>=2){for(var i=0;i<200;i++){var alt=ri(1,15)*1000,temp=15-Math.round(alt*6.5/1000);qs.push(me._q('🌡️','على ارتفاع '+alt+' متر من سطح البحر، كم تكون درجة الحرارة تقريباً؟ (تنخفض 6.5° لكل كم)',['≈ '+temp+' درجة مئوية','≈ '+(temp+ri(3,10))+' درجة مئوية','≈ '+(temp-ri(3,10))+' درجة مئوية','≈ 15 درجة مئوية'],0,'غلاف جوي','الحرارة = 15 - (الارتفاع بالكم × 6.5)'))}}
-if(lv===3){for(var i=0;i<200;i++){var m2=ri(1,10)*1000,h=ri(100,10000),pe=m2*10*h;qs.push(me._q('🚀','صاروخ كتلته '+m2+' كجم يرتفع إلى '+h+' متر. ما طاقة وضعه؟ (الجاذبية = 10)',[pe+' جول',(m2*h)+' جول',(pe+ri(1000,5000))+' جول',(m2*10)+' جول'],0,'طاقة في الفضاء','طاقة الوضع = الكتلة × الجاذبية × الارتفاع'))}}
+var core=[['كيف يولّد الجناح قوة الرفع؟','الهواء أسرع فوق الجناح فيقل الضغط','الجناح مملوء بغاز خفيف','المحرك يدفعه','الهواء يسخن تحته'],['ما القوى الأربع على الطائرة؟','الرفع والوزن والدفع والمقاومة','الرفع والجاذبية والاحتكاك والطرد','الدفع والسحب والمغناطيسية والضغط','الحرارة والضغط والكثافة والسرعة'],['كيف يتحرك الصاروخ في الفضاء بلا هواء؟','يدفع غازات للخلف (قانون نيوتن الثالث)','يدفع الهواء المتبقي','بالمغناطيسية','بالأشعة الشمسية'],['لماذا تطير الطائرات على ارتفاع 10 كم؟','الهواء أقل كثافة فتقل المقاومة','لتجنب الطيور','بسبب القوانين','للبرودة'],['ما التوقف الهوائي Stall؟','فقدان مفاجئ لقوة الرفع','زيادة السرعة','انكسار الجناح','ارتفاع حرارة المحرك'],['أول من مشى على القمر؟','نيل آرمسترونغ 1969','يوري غاغارين 1961','جون غلين 1962','باز ألدرين 1969'],['أول رحلة طيران ناجحة؟','الأخوان رايت 1903','1910','1895','1920'],['سرعة الإفلات من جاذبية الأرض؟','11.2 كم/ث','1 كم/ث','100 كم/ث','343 م/ث'],['لماذا الإقلاع صعب في الحر؟','الهواء الساخن أقل كثافة فيقل الرفع','الإطارات تلتصق','الوقود يتبخر','المحرك يضعف'],['ما وقود صواريخ الفضاء الشائع؟','هيدروجين سائل + أكسجين سائل','بنزين عادي','غاز طبيعي','طاقة شمسية']];
+var mult=lv===1?10:lv===2?12:16;for(var c=0;c<core.length;c++){for(var k=0;k<mult;k++)qs.push(me._q('✈️',core[c][0],[core[c][1],core[c][2],core[c][3],core[c][4]],0,'طيران','فكّر في المبدأ الفيزيائي'))}
+for(var i=0;i<60;i++){var spd=ri(200,900);var t=ri(1,8);var d=spd*t;qs.push(me._q('✈️','طائرة بسرعة '+spd+' كم/ساعة. كم تقطع في '+t+' ساعات؟',[d+' كم',(d+200)+' كم',(spd+t)+' كم',(d-spd)+' كم'],0,'مسافة','المسافة = السرعة × الزمن'))}
+for(var i=0;i<40;i++){var ft=ri(10,45)*1000;var m=Math.round(ft*0.3048);qs.push(me._q('📏','ارتفاع '+ft+' قدم = كم متر؟ (1 قدم ≈ 0.3 م)',['≈ '+m+' م','≈ '+(m+500)+' م','≈ '+Math.max(100,m-300)+' م','≈ '+ft+' م'],0,'تحويل','اضرب في 0.3'))}
+if(lv>=2){for(var i=0;i<60;i++){var alt=ri(1,15)*1000;var temp=15-Math.round(alt*6.5/1000);qs.push(me._q('🌡️','الحرارة على ارتفاع '+alt+' م؟ (تنخفض 6.5° لكل كم)',['≈ '+temp+'°C','≈ '+(temp+10)+'°C','≈ '+(temp-10)+'°C','≈ 15°C'],0,'غلاف جوي','15 - (الارتفاع بالكم × 6.5)'))}
+}
 return shuffle(qs)},
 
 iq:function(lv){var qs=[];var me=this;
-for(var i=0;i<250;i++){var a=ri(1,20),b=ri(2,10);var seq=[];for(var j=0;j<5;j++)seq.push(a+b*j);var next=a+b*5;qs.push(me._q('🧩','ما العدد التالي في هذا النمط: '+seq.join('، ')+' ، ___ ؟',[next+'',(next+b)+'',(next-1)+'',(next+ri(1,4))+''],0,'أنماط عددية','لاحظ الفرق بين كل عدد والذي يليه = '+b))}
-for(var i=0;i<150;i++){var a=ri(1,5),r=ri(2,3);var seq=[];var v=a;for(var j=0;j<4;j++){seq.push(v);v*=r}if(v<10000)qs.push(me._q('🧩','ما العدد التالي في هذا النمط: '+seq.join('، ')+' ، ___ ؟',[v+'',(v+ri(1,10))+'',(seq[3]+seq[2])+'',(Math.floor(v/2))+''],0,'أنماط هندسية','كل عدد يساوي العدد السابق مضروباً في '+r))}
-var odds=[['تفاحة، موز، جزر، عنب — أي عنصر لا ينتمي للمجموعة؟','جزر (خضار وليس فاكهة)','تفاحة','موز','عنب'],['مربع، مستطيل، دائرة، معين — أي شكل يختلف عن البقية؟','الدائرة (ليس لها أضلاع)','المربع','المستطيل','المعين'],['كلب، قطة، سمكة، أرنب — أي حيوان يختلف عن البقية؟','السمكة (ليست من الثدييات)','الكلب','القطة','الأرنب'],['أحمر، أزرق، حار، أخضر — أي كلمة لا تنتمي؟','حار (ليس لوناً بل صفة حرارة)','أحمر','أزرق','أخضر'],['كرسي، طاولة، باب، سرير — أي عنصر يختلف؟','الباب (ليس قطعة أثاث)','الكرسي','الطاولة','السرير'],['الأرض، المريخ، القمر، المشتري — أيها يختلف؟','القمر (تابع وليس كوكباً)','الأرض','المريخ','المشتري']];
-for(var o=0;o<odds.length;o++){for(var k=0;k<25;k++)qs.push(me._q('🤔',odds[o][0],[odds[o][1],odds[o][2],odds[o][3],odds[o][4]],0,'الشاذ','ابحث عن القاسم المشترك بين ثلاثة عناصر والعنصر المختلف'))}
-for(var i=0;i<200;i++){var a=ri(2,15),b=ri(2,15),s=a+b,p=a*b;qs.push(me._q('🧠','عددان مجموعهما '+s+' وحاصل ضربهما '+p+'. ما هما؟',[a+' و '+b,(a+1)+' و '+(b-1),s+' و 0',(Math.floor(p/2))+' و 2'],0,'منطق رياضي','جرّب أزواج الأعداد التي مجموعها '+s+' واحسب ضربها'))}
-for(var i=0;i<200;i++){var age1=ri(25,50),diff=ri(20,30),age2=age1-diff;qs.push(me._q('🧠','عمر أب '+age1+' سنة والفرق بينه وبين ابنه '+diff+' سنة. كم عمر الابن؟',[age2+' سنة',(age2+ri(1,5))+' سنة',(age1+diff)+' سنة',diff+' سنة'],0,'ألغاز عمرية','عمر الابن = عمر الأب - فرق العمر'))}
-for(var i=0;i<200;i++){var a=ri(3,20),b=ri(3,20),c=a*b;qs.push(me._q('🧩','أكمل الفراغ: '+a+' × ___ = '+c+'. ما العدد الناقص؟',[b+'',(b+1)+'',(b-1)+'',(Math.floor(c/2))+''],0,'إكمال','اقسم الناتج '+c+' على '+a+' لتجد العدد المفقود'))}
-for(var i=0;i<150;i++){var stH=ri(1,12),dur=ri(1,6),end=(stH+dur)>12?(stH+dur-12):(stH+dur);qs.push(me._q('🕐','إذا كانت الساعة الآن '+stH+' وانتظرت '+dur+' ساعات، كم ستكون الساعة؟',[end+'',(end+1>12?1:end+1)+'',(stH+dur)+'',Math.max(1,end-1)+''],0,'ألغاز الساعة','أضف '+dur+' إلى '+stH+' (إذا تجاوزت 12 اطرح 12)'))}
+for(var i=0;i<80;i++){var a=ri(1,20);var b=ri(2,10);var seq=[];for(var j=0;j<5;j++)seq.push(a+b*j);var next=a+b*5;qs.push(me._q('🧩','ما التالي: '+seq.join('، ')+' ، ___ ؟',[next+'',(next+b)+'',(next-1)+'',(next+ri(1,4))+''],0,'أنماط','الفرق بين كل عددين = '+b))}
+for(var i=0;i<50;i++){var a=ri(1,5);var r=ri(2,3);var seq=[];var v=a;for(var j=0;j<4;j++){seq.push(v);v*=r}if(v<10000)qs.push(me._q('🧩','ما التالي: '+seq.join('، ')+' ، ___ ؟',[v+'',(v+10)+'',(seq[3]+seq[2])+'',(Math.floor(v/2))+''],0,'أنماط هندسية','كل عدد = السابق × '+r))}
+var odds=[['🍎🍌🥕🍇 أيها لا ينتمي؟','🥕 جزر (خضار وليس فاكهة)','🍎 تفاحة','🍌 موز','🍇 عنب'],['⬜🔷⭕🔶 أيها يختلف؟','⭕ الدائرة (بلا أضلاع)','⬜ مربع','🔷 معين','🔶 ماسة'],['🐕🐈🐟🐇 أيها يختلف؟','🐟 السمكة (ليست ثدييات)','🐕 كلب','🐈 قطة','🐇 أرنب'],['🔴🔵🌶️🟢 أيها ليس لوناً؟','🌶️ حار (صفة حرارة)','🔴 أحمر','🔵 أزرق','🟢 أخضر'],['🪑🪧🚪🛏️ أيها ليس أثاثاً؟','🚪 الباب','🪑 كرسي','🪧 طاولة','🛏️ سرير'],['🌍🔴🌙⭕ أيها ليس كوكباً؟','🌙 القمر (تابع)','🌍 الأرض','🔴 المريخ','⭕ المشتري']];
+for(var o=0;o<odds.length;o++){for(var k=0;k<15;k++)qs.push(me._q('🤔',odds[o][0],[odds[o][1],odds[o][2],odds[o][3],odds[o][4]],0,'الشاذ','ابحث عن المختلف'))}
+for(var i=0;i<60;i++){var a=ri(2,15);var b=ri(2,15);var s=a+b;var p=a*b;qs.push(me._q('🧠','عددان مجموعهما '+s+' وضربهما '+p+'. ما هما؟',[a+' و '+b,(a+1)+' و '+(b-1),s+' و 0',(Math.floor(p/2))+' و 2'],0,'منطق','جرّب أزواج مجموعها '+s))}
+for(var i=0;i<60;i++){var a=ri(3,20);var b=ri(3,20);var c=a*b;qs.push(me._q('🧩','أكمل: '+a+' × ___ = '+c,[b+'',(b+1)+'',(b-1)+'',(Math.floor(c/2))+''],0,'إكمال','اقسم '+c+' على '+a))}
+var logic=[['🧠 إذا كان كل التفاح فاكهة، وبعض الفاكهة حمراء، هل كل التفاح أحمر؟','لا بالضرورة','نعم دائماً','مستحيل','لا علاقة'],['🧠 أنا أكبر من أخي بـ 5 سنوات. بعد 10 سنوات الفرق بيننا؟','5 سنوات (الفرق ثابت)','15 سنة','10 سنوات','لا يمكن معرفته'],['🧠 ساعة تتأخر دقيقة كل ساعة. بعد كم ساعة تتأخر ساعة كاملة؟','60 ساعة','100 ساعة','24 ساعة','12 ساعة'],['🧠 عندك 3 صناديق: تفاح، برتقال، ومختلط. كل اللصاقات خاطئة. كم محاولة لمعرفة الصحيح؟','محاولة واحدة فقط','3 محاولات','محاولتين','لا يمكن'],['🧠 إذا كان 5 آلات تنتج 5 قطع في 5 دقائق، كم دقيقة تحتاج 100 آلة لإنتاج 100 قطعة؟','5 دقائق','100 دقيقة','50 دقيقة','500 دقيقة']];
+for(var l=0;l<logic.length;l++){for(var k=0;k<15;k++)qs.push(me._q('🧠',logic[l][0],[logic[l][1],logic[l][2],logic[l][3],logic[l][4]],0,'ألغاز منطقية','فكّر خطوة بخطوة'))}
 return shuffle(qs)}
 };
 
+function startQuiz(key,name,icon,count,isBattle){
+if(!count)count=15;if(!isBattle)isBattle=false;
+sfxClick();
+S.subject=key;S.subjectName=name;S.subjectIcon=icon;
+var allQs=QB.generate(key,S.level);
+shuffle(allQs);
+S.qs=allQs.slice(0,Math.min(count,allQs.length));
+S.qi=0;S.score=0;S.hints=3;S.answered=false;S.hintShown=false;S.selected=-1;
+S.maxTime=isBattle?20:30;S.isBattle=isBattle;
+AUTH.startTime=Date.now();
+showScreen('quiz');renderQuestion();}
+
+function renderQuestion(){
+if(S.qi>=S.qs.length){finishQuiz();return}
+S.answered=false;S.hintShown=false;S.selected=-1;
+var q=S.qs[S.qi];
+document.getElementById('quizTitle').textContent=S.subjectIcon+' '+S.subjectName;
+document.getElementById('quizCount').textContent=(S.qi+1)+'/'+S.qs.length;
+document.getElementById('quizProgress').style.width=((S.qi+1)/S.qs.length*100)+'%';
+var labels=['أ','ب','ج','د'];
+var h='<div style="display:flex;gap:6px;margin-bottom:12px"><span class="chip chip-lav">'+q.type+'</span><span class="chip chip-gold">'+['','9-11','12-14','15-18'][S.level]+'</span></div><div style="font-size:18px;font-weight:800;line-height:1.9;margin-bottom:16px" id="qText">'+q.text+'</div>';
+for(var i=0;i<q.options.length;i++){h+='<div class="opt" id="opt'+i+'" onclick="answer('+i+')"><div class="opt-label" id="optL'+i+'">'+labels[i]+'</div><div class="opt-text">'+q.options[i]+'</div><div class="opt-icon" id="optI'+i+'"></div></div>'}
+if(q.hint&&S.hints>0){h+='<div style="text-align:center;margin-top:6px" id="hintBtn"><span style="cursor:pointer;color:var(--gold);font-size:13px;font-weight:600" onclick="useHint()">💡 تلميح ('+S.hints+')</span></div>'}
+h+='<div id="hintBox"></div><div id="feedbackBox"></div>';
+h+='<div class="stats-row"><div class="stat-chip" style="background:rgba(16,185,129,.1);color:var(--green)">✅ '+S.score+'</div><div class="stat-chip" style="background:rgba(239,68,68,.1);color:var(--red)">❌ '+(S.qi-S.score)+'</div><div class="stat-chip" style="background:rgba(245,158,11,.1);color:var(--gold)">💡 '+S.hints+'</div></div>';
+document.getElementById('quizBody').innerHTML=h;
+startTimer();}
+
+function startTimer(){
+clearInterval(S.timer);
+S.timeLeft=S.maxTime;
+updateTimer();
+S.timer=setInterval(function(){S.timeLeft--;updateTimer();if(S.timeLeft<=5)sfxTick();if(S.timeLeft<=0){clearInterval(S.timer);autoAnswer()}},1000);}
+
+function updateTimer(){
+var el=document.getElementById('quizTimer');
+var bar=document.getElementById('timerBar');
+var pct=S.timeLeft/S.maxTime;
+var color=S.timeLeft>10?'var(--green)':S.timeLeft>5?'var(--gold)':'var(--red)';
+el.innerHTML='⏱ '+S.timeLeft+' ثانية';
+el.style.color=color;
+bar.style.width=(pct*100)+'%';
+bar.style.background=color;
+if(S.timeLeft<=5)el.style.animation='timerPulse .5s ease-in-out';else el.style.animation='none';}
+
+function autoAnswer(){if(!S.answered){S.answered=true;showAnswerFeedback(-1);vib(200)}}
+
+function answer(idx){
+if(S.answered)return;
+clearInterval(S.timer);
+S.answered=true;S.selected=idx;
+var q=S.qs[S.qi];
+var correct=idx===q.ans;
+if(correct)S.score++;
+showAnswerFeedback(idx);}
+
+function showAnswerFeedback(idx){
+var q=S.qs[S.qi];
+for(var i=0;i<q.options.length;i++){var el=document.getElementById('opt'+i);var icon=document.getElementById('optI'+i);if(i===q.ans){el.classList.add('correct');icon.textContent='✓'}else if(i===idx&&idx!==q.ans){el.classList.add('wrong');icon.textContent='✗'}else{el.classList.add('dimmed')}}
+if(idx===q.ans){sfxCorrect();vib(30);if(S.fx)spawnConfetti(15)}else{sfxWrong();vib(100);var qt=document.getElementById('qText');if(qt)qt.style.animation='shake .4s'}
+var fb=document.getElementById('feedbackBox');var isC=idx===q.ans;
+fb.innerHTML='<div class="feedback '+(isC?'correct':'wrong')+'" style="margin-top:12px"><div style="font-size:36px">'+(isC?'🎉':'😔')+'</div><div style="font-size:16px;font-weight:800;color:'+(isC?'var(--green)':'var(--red)')+';margin-top:4px">'+(isC?'إجابة صحيحة! أحسنت':'إجابة خاطئة')+'</div>'+(!isC?'<div style="font-size:14px;color:var(--txt2);margin-top:4px">الإجابة: '+q.options[q.ans]+'</div>':'')+'</div><button class="btn btn-primary" style="margin-top:12px" onclick="nextQuestion()">'+(S.qi+1>=S.qs.length?'📊 النتائج':'← السؤال التالي')+'</button>';
+var hb=document.getElementById('hintBtn');if(hb)hb.style.display='none';}
+
+function useHint(){
+if(S.hints<=0||S.hintShown||S.answered)return;
+sfxClick();S.hints--;S.hintShown=true;
+var q=S.qs[S.qi];
+document.getElementById('hintBox').innerHTML='<div class="hint-box"><div class="hint-title">💡 تلميح</div><div style="font-size:14px;color:var(--txt2);line-height:1.8">'+q.hint+'</div></div>';
+var hb=document.getElementById('hintBtn');if(hb)hb.remove();}
+
+function nextQuestion(){sfxClick();S.qi++;if(S.qi>=S.qs.length){finishQuiz();return}renderQuestion();}
+
+function finishQuiz(){
+clearInterval(S.timer);sfxFinish();
+S.gamesPlayed++;S.totalScore+=S.score;
+var pct=Math.round(S.score*100/S.qs.length);
+S.leaderboard.push({name:S.name,score:S.score,total:S.qs.length,pct:pct,level:S.level,subject:S.subjectName,date:Date.now()});
+S.leaderboard.sort(function(a,b){return b.pct-a.pct});
+if(S.leaderboard.length>10)S.leaderboard=S.leaderboard.slice(0,10);
+save();
+var duration=Math.round((Date.now()-AUTH.startTime)/1000);
+saveGameToCloud(S.subjectName,S.score,S.qs.length,duration);
+authSaveProfile(false);
+var emoji=pct>=90?'🏆':pct>=70?'🌟':pct>=50?'💪':pct>=30?'📚':'🔄';
+var msg=pct>=90?'ممتاز! أداء استثنائي!':pct>=70?'رائع! أحسنت!':pct>=50?'جيد! واصل التحسن':pct>=30?'لا بأس، تمرّن أكثر':'حاول مرة أخرى!';
+var barColor=pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--red)';
+var bonus=(pct>=80?50:0)+(pct===100?100:0);var totalPts=S.score*10+bonus;
+var h='<div style="margin-top:30px"><div class="result-emoji">'+emoji+'</div><div class="grad-text result-pct anim-pop" style="animation-delay:.2s">'+pct+'%</div><div style="font-size:18px;font-weight:700;color:var(--txt2);margin-top:4px">'+msg+'</div><div style="font-size:14px;color:var(--txt3);margin-top:4px">'+S.subjectIcon+' '+S.subjectName+'</div></div><div style="margin:16px auto;max-width:300px;height:8px;background:var(--card2);border-radius:8px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:8px;transition:width 1s"></div></div><div style="display:flex;justify-content:center;gap:24px;margin:20px 0"><div style="text-align:center"><div style="font-size:20px">✅</div><div style="font-size:28px;font-weight:900;color:var(--green)">'+S.score+'</div><div style="font-size:12px;color:var(--txt3)">صحيحة</div></div><div style="text-align:center"><div style="font-size:20px">❌</div><div style="font-size:28px;font-weight:900;color:var(--red)">'+(S.qs.length-S.score)+'</div><div style="font-size:12px;color:var(--txt3)">خاطئة</div></div><div style="text-align:center"><div style="font-size:20px">📝</div><div style="font-size:28px;font-weight:900;color:var(--blue)">'+S.qs.length+'</div><div style="font-size:12px;color:var(--txt3)">إجمالي</div></div></div><div class="c" style="text-align:right;max-width:350px;margin:0 auto"><div style="text-align:center;font-size:15px;font-weight:700;color:var(--lav3);margin-bottom:8px">📊 ملخص الأداء</div><div class="score-row"><span class="label">النقاط الأساسية</span><span class="val" style="color:var(--lav3)">'+(S.score*10)+'</span></div>'+(pct>=80?'<div class="score-row"><span class="label">مكافأة التميز</span><span class="val" style="color:var(--gold)">+50</span></div>':'')+(pct===100?'<div class="score-row"><span class="label">مكافأة الكمال</span><span class="val" style="color:var(--gold)">+100</span></div>':'')+'<hr style="border:none;border-top:1px solid var(--card2);margin:8px 0"><div class="score-row"><span class="label">المجموع</span><span class="val" style="color:var(--txt);font-size:18px">'+totalPts+'</span></div></div><button class="btn btn-primary" style="margin-top:20px;max-width:350px" onclick="showScreen(\'home\')">🏠 العودة للرئيسية</button>';
+document.getElementById('resultContent').innerHTML=h;
+showScreen('result');
+if(pct>=70)setTimeout(function(){spawnConfetti(80)},300);}
+
+function confirmExit(){if(S.answered||S.qi===0||confirm('هل تريد الخروج؟ سيتم فقدان التقدم')){clearInterval(S.timer);showScreen('home')}}
+
 load();
-setTimeout(function(){if(S.name&&S.level)showScreen('home');else showScreen('register')},2000);
+setTimeout(function(){if(AUTH.uid){if(S.name&&S.level)showScreen('home');else showScreen('register')}else if(S.name&&S.level){showScreen('home')}else{showScreen('login')}},2000);
+/* === Firebase Auth System === */
+function authInitApp(){
+if(typeof firebase==='undefined'){console.log('Firebase not loaded - offline mode');return}
+try{
+if(!firebase.apps.length){
+firebase.initializeApp({apiKey:"AIzaSyAgS4CRcMy1dtUNcRFY8yztv96FSzTFKmA",authDomain:"nukhbat-aloqul.firebaseapp.com",databaseURL:"https://nukhbat-aloqul-default-rtdb.firebaseio.com",projectId:"nukhbat-aloqul"});
+}
+AUTH.db=firebase.database();
+firebase.auth().onAuthStateChanged(function(user){
+if(user){AUTH.uid=user.uid;AUTH.email=user.email;authLoadProfile()}
+});
+}catch(e){console.log('Auth init:',e)}}
+
+function authLogin(){
+if(typeof firebase==='undefined'){authShowErr('الخدمة غير متوفرة في وضع المعاينة');return}
+var email=document.getElementById('authEmail').value.trim();
+var pass=document.getElementById('authPass').value;
+if(!email||!pass){authShowErr('أدخل البريد وكلمة المرور');return}
+firebase.auth().signInWithEmailAndPassword(email,pass).then(function(r){
+AUTH.uid=r.user.uid;AUTH.email=email;
+authLoadProfile();
+}).catch(function(e){
+var msg='خطأ في تسجيل الدخول';
+if(e.code==='auth/user-not-found')msg='الحساب غير موجود — أنشئ حساب جديد';
+if(e.code==='auth/wrong-password')msg='كلمة المرور خاطئة';
+if(e.code==='auth/invalid-email')msg='البريد الإلكتروني غير صحيح';
+authShowErr(msg)})}
+
+function authRegister(){
+var email=document.getElementById('authEmail').value.trim();
+var pass=document.getElementById('authPass').value;
+if(!email||!pass){authShowErr('أدخل البريد وكلمة المرور');return}
+if(pass.length<6){authShowErr('كلمة المرور 6 أحرف على الأقل');return}
+firebase.auth().createUserWithEmailAndPassword(email,pass).then(function(r){
+AUTH.uid=r.user.uid;AUTH.email=email;
+authSaveProfile(true);
+if(S.name&&S.level)showScreen('home');else showScreen('register');
+}).catch(function(e){
+var msg='خطأ في إنشاء الحساب';
+if(e.code==='auth/email-already-in-use')msg='هذا البريد مُسجل من قبل — سجّل دخولك';
+if(e.code==='auth/weak-password')msg='كلمة المرور ضعيفة';
+if(e.code==='auth/invalid-email')msg='البريد الإلكتروني غير صحيح';
+authShowErr(msg)})}
+
+function authTeacherLogin(){
+var email=document.getElementById('authEmail').value.trim();
+var pass=document.getElementById('authPass').value;
+if(!email||!pass){authShowErr('أدخل البريد وكلمة المرور');return}
+firebase.auth().signInWithEmailAndPassword(email,pass).then(function(r){
+AUTH.uid=r.user.uid;AUTH.email=email;AUTH.role='teacher';
+AUTH.db.ref('users/'+AUTH.uid+'/role').set('teacher');
+showScreen('teacher');
+}).catch(function(e){
+firebase.auth().createUserWithEmailAndPassword(email,pass).then(function(r){
+AUTH.uid=r.user.uid;AUTH.email=email;AUTH.role='teacher';
+AUTH.db.ref('users/'+AUTH.uid).set({name:'معلم',email:email,role:'teacher',created:Date.now()});
+showScreen('teacher');
+}).catch(function(e2){authShowErr('خطأ: '+e2.message)})})}
+
+function authSkip(){showScreen(S.name&&S.level?'home':'register')}
+
+function authShowErr(msg){var el=document.getElementById('authError');el.textContent=msg;el.style.display='block';setTimeout(function(){el.style.display='none'},4000)}
+
+function authLoadProfile(){
+if(!AUTH.uid||!AUTH.db)return;
+AUTH.db.ref('users/'+AUTH.uid).once('value').then(function(snap){
+var d=snap.val();
+if(d){
+if(d.role==='teacher'){AUTH.role='teacher';showScreen('teacher');return}
+if(d.name)S.name=d.name;
+if(d.level)S.level=d.level;
+if(d.totalScore)S.totalScore=d.totalScore;
+if(d.gamesPlayed)S.gamesPlayed=d.gamesPlayed;
+save();
+}
+if(S.name&&S.level)showScreen('home');else showScreen('register');
+})}
+
+function authSaveProfile(isNew){
+if(!AUTH.uid||!AUTH.db)return;
+var data={name:S.name,email:AUTH.email||'',level:S.level,totalScore:S.totalScore,gamesPlayed:S.gamesPlayed,role:AUTH.role,lastLogin:Date.now()};
+if(isNew)data.created=Date.now();
+AUTH.db.ref('users/'+AUTH.uid).update(data)}
+
+function authLogout(){
+firebase.auth().signOut();
+AUTH.uid=null;AUTH.email=null;AUTH.role='student';
+showScreen('login')}
+
+/* === Save Game Results to Firebase === */
+function saveGameToCloud(subject,score,total,duration){
+if(!AUTH.uid||!AUTH.db)return;
+var gameData={subject:subject,score:score,total:total,pct:Math.round(score*100/total),duration:duration,date:Date.now(),level:S.level};
+AUTH.db.ref('users/'+AUTH.uid+'/history').push(gameData);
+AUTH.db.ref('users/'+AUTH.uid).update({totalScore:S.totalScore,gamesPlayed:S.gamesPlayed,lastPlayed:Date.now()});
+AUTH.db.ref('analytics/totalGames').transaction(function(v){return(v||0)+1});
+AUTH.db.ref('analytics/daily/'+new Date().toISOString().slice(0,10)).transaction(function(v){return(v||0)+1})}
+
+/* === Dashboard — Student Analytics === */
+function renderDashboard(){
+var el=document.getElementById('dashBody');
+var pct=S.gamesPlayed>0?Math.round(S.totalScore*100/(S.gamesPlayed*10)):0;
+var rank=pct>=90?'🏆 نخبة':pct>=70?'⭐ متميز':pct>=50?'💪 جيد':pct>=30?'📚 مبتدئ':'🌱 جديد';
+var h='<div class="c" style="text-align:center;margin-bottom:12px;padding:20px"><div style="font-size:48px">'+rank.split(' ')[0]+'</div><div class="grad-text" style="font-size:22px;font-weight:900">'+rank.split(' ')[1]+'</div><div style="color:var(--txt3);font-size:12px;margin-top:4px">مرتبتك بناءً على أدائك العام</div></div>';
+h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+h+='<div class="c" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:var(--lav3)">'+S.gamesPlayed+'</div><div style="font-size:11px;color:var(--txt3)">مباراة</div></div>';
+h+='<div class="c" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:var(--gold)">'+S.totalScore+'</div><div style="font-size:11px;color:var(--txt3)">نقطة</div></div>';
+h+='<div class="c" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:var(--green)">'+pct+'%</div><div style="font-size:11px;color:var(--txt3)">معدل النجاح</div></div>';
+h+='<div class="c" style="text-align:center;padding:16px"><div style="font-size:28px;font-weight:900;color:var(--blue)">'+S.leaderboard.length+'</div><div style="font-size:11px;color:var(--txt3)">سجل النتائج</div></div></div>';
+
+h+='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:10px">📈 أداؤك حسب المادة</div>';
+for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var subGames=0;var subScore=0;
+for(var j=0;j<S.leaderboard.length;j++){if(S.leaderboard[j].subject===s.name){subGames++;subScore+=S.leaderboard[j].pct}}
+var avg=subGames>0?Math.round(subScore/subGames):0;
+var barW=Math.max(5,avg);
+var barCol=avg>=70?'var(--green)':avg>=40?'var(--gold)':'var(--red)';
+h+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:var(--txt2)">'+s.icon+' '+s.name+'</span><span style="color:var(--txt3)">'+avg+'% ('+subGames+' مباراة)</span></div><div style="height:8px;background:var(--card2);border-radius:8px;overflow:hidden"><div style="height:100%;width:'+barW+'%;background:'+barCol+';border-radius:8px;transition:width .5s"></div></div></div>'}
+h+='</div>';
+
+h+='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">📜 آخر النتائج</div>';
+var recent=S.leaderboard.slice(0,5);
+if(recent.length===0)h+='<div style="text-align:center;color:var(--txt3);font-size:13px;padding:16px">لا توجد نتائج بعد</div>';
+for(var i=0;i<recent.length;i++){var r=recent[i];var emoji=r.pct>=80?'🌟':r.pct>=50?'✅':'📚';
+h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--card2)"><div>'+emoji+'</div><div style="flex:1;font-size:13px;color:var(--txt2)">'+(r.subject||'')+'</div><div style="font-size:14px;font-weight:700;color:var(--gold)">'+r.pct+'%</div></div>'}
+h+='</div>';
+
+if(!AUTH.uid){h+='<div class="c" style="text-align:center;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05)"><div style="font-size:32px">🔐</div><div style="color:var(--gold);font-size:14px;font-weight:700;margin:8px 0">سجّل دخولك لحفظ بياناتك</div><div style="color:var(--txt3);font-size:12px;margin-bottom:12px">بدون حساب ستضيع بياناتك عند مسح المتصفح</div><button class="btn btn-gold" onclick="showScreen(\'login\')">تسجيل الدخول 🚀</button></div>'}
+h+='<button class="btn btn-primary" style="margin-top:12px" onclick="showScreen(\'premium\')">👑 اكتشف النسخة المميزة</button>';
+el.innerHTML=h}
+
+/* === Teacher Dashboard === */
+function renderTeacher(){
+var el=document.getElementById('teacherBody');
+if(!AUTH.uid||!AUTH.db){el.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:48px">🔐</div><div style="color:var(--txt3);margin-top:8px">سجّل دخولك كمعلم أولاً</div></div>';return}
+el.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:36px" class="anim-bounce">⏳</div><div style="color:var(--txt3);margin-top:8px">جاري تحميل البيانات...</div></div>';
+AUTH.db.ref('users').orderByChild('lastPlayed').limitToLast(50).once('value').then(function(snap){
+var users=snap.val()||{};
+var keys=Object.keys(users);
+var students=[];var totalGames=0;var totalScore=0;
+for(var i=0;i<keys.length;i++){var u=users[keys[i]];if(u.role==='teacher')continue;
+students.push({uid:keys[i],name:u.name||'بدون اسم',email:u.email||'',level:u.level||0,games:u.gamesPlayed||0,score:u.totalScore||0,last:u.lastPlayed||u.lastLogin||0});
+totalGames+=(u.gamesPlayed||0);totalScore+=(u.totalScore||0)}
+students.sort(function(a,b){return b.score-a.score});
+
+var h='<div class="c" style="text-align:center;margin-bottom:12px;padding:16px;border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.05)"><div style="font-size:36px">🍎</div><div style="font-size:20px;font-weight:900;color:var(--green)">لوحة المعلم</div><div style="color:var(--txt3);font-size:12px">'+AUTH.email+'</div></div>';
+
+h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">';
+h+='<div class="c" style="text-align:center;padding:12px"><div style="font-size:24px;font-weight:900;color:var(--lav3)">'+students.length+'</div><div style="font-size:10px;color:var(--txt3)">طالب</div></div>';
+h+='<div class="c" style="text-align:center;padding:12px"><div style="font-size:24px;font-weight:900;color:var(--gold)">'+totalGames+'</div><div style="font-size:10px;color:var(--txt3)">مباراة</div></div>';
+h+='<div class="c" style="text-align:center;padding:12px"><div style="font-size:24px;font-weight:900;color:var(--green)">'+totalScore+'</div><div style="font-size:10px;color:var(--txt3)">نقطة</div></div></div>';
+
+h+='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">👥 الطلاب المسجلين ('+students.length+')</div>';
+if(students.length===0)h+='<div style="text-align:center;color:var(--txt3);font-size:13px;padding:16px">لا يوجد طلاب مسجلين بعد<br><span style="font-size:11px">شارك رابط التطبيق مع طلابك</span></div>';
+var lvNames=['','9-11','12-14','15-18'];
+var medals=['🥇','🥈','🥉'];
+for(var i=0;i<students.length;i++){var st=students[i];
+var lastTxt=st.last?timeSince(st.last):'لم يلعب بعد';
+h+='<div class="lb-row" style="cursor:pointer" onclick="showStudentDetail(\''+st.uid+'\')"><div style="width:24px;text-align:center;font-size:14px;color:var(--txt3)">'+(i<3?medals[i]:(i+1))+'</div><div class="lb-avatar" style="width:32px;height:32px;font-size:14px;background:'+(i<3?'var(--gold)':'var(--card2)')+'">'+st.name[0]+'</div><div class="lb-info"><div style="font-size:13px;font-weight:600">'+st.name+'</div><div style="font-size:10px;color:var(--txt3)">مستوى '+(lvNames[st.level]||'?')+' · '+lastTxt+'</div></div><div style="text-align:left"><div style="font-size:15px;font-weight:900;color:var(--gold)">'+st.score+'</div><div style="font-size:10px;color:var(--txt3)">'+st.games+' مباراة</div></div></div>'}
+h+='</div>';
+
+AUTH.db.ref('analytics/daily').limitToLast(7).once('value').then(function(asnap){
+var aData=asnap.val()||{};var aDays=Object.keys(aData).sort();
+if(aDays.length>0){
+var maxV=1;for(var i=0;i<aDays.length;i++){if(aData[aDays[i]]>maxV)maxV=aData[aDays[i]]}
+var chartH='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:12px">📊 نشاط آخر 7 أيام</div><div style="display:flex;align-items:flex-end;gap:4px;height:100px">';
+for(var i=0;i<aDays.length;i++){var v=aData[aDays[i]];var pctH=Math.round(v*100/maxV);
+chartH+='<div style="flex:1;text-align:center"><div style="font-size:10px;color:var(--gold);margin-bottom:2px">'+v+'</div><div style="height:'+pctH+'px;background:linear-gradient(to top,var(--lav2),var(--lav));border-radius:4px 4px 0 0;min-height:4px"></div><div style="font-size:8px;color:var(--txt3);margin-top:2px">'+aDays[i].slice(5)+'</div></div>'}
+chartH+='</div></div>';
+el.innerHTML=el.innerHTML+chartH}});
+AUTH.db.ref('reports').limitToLast(10).once('value').then(function(rsnap){
+var reps=rsnap.val()||{};var rkeys=Object.keys(reps);
+if(rkeys.length>0){
+var rh='<div class="c" style="margin-bottom:12px;border-color:rgba(239,68,68,.3)"><div style="color:var(--red);font-size:14px;font-weight:700;margin-bottom:8px">⚠️ أسئلة مُبلَّغ عنها ('+rkeys.length+')</div>';
+for(var i=rkeys.length-1;i>=Math.max(0,rkeys.length-5);i--){var rp=reps[rkeys[i]];
+rh+='<div style="padding:8px;margin-bottom:6px;background:rgba(239,68,68,.05);border-radius:8px;border:1px solid rgba(239,68,68,.1)"><div style="font-size:12px;color:var(--txt2)">'+((rp.question||'').substring(0,80))+'</div><div style="font-size:10px;color:var(--txt3);margin-top:4px">'+(rp.subject||'')+' · بلّغ: '+(rp.reporter||'')+' · '+timeSince(rp.date)+'</div></div>'}
+rh+='</div>';el.innerHTML=el.innerHTML+rh}});
+
+el.innerHTML=h})}
+
+function timeSince(ts){var s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'الآن';if(s<3600)return Math.floor(s/60)+' دقيقة';if(s<86400)return Math.floor(s/3600)+' ساعة';return Math.floor(s/86400)+' يوم'}
+
+function showStudentDetail(uid){
+if(!AUTH.db)return;
+AUTH.db.ref('users/'+uid).once('value').then(function(snap){
+var u=snap.val();if(!u)return;
+AUTH.db.ref('users/'+uid+'/history').limitToLast(10).once('value').then(function(hsnap){
+var hist=hsnap.val()||{};var hkeys=Object.keys(hist);
+var h='<div class="c" style="text-align:center;margin-bottom:12px;padding:16px"><div class="lb-avatar" style="width:48px;height:48px;font-size:24px;margin:0 auto 8px;background:var(--gold)">'+(u.name?u.name[0]:'?')+'</div><div style="font-size:18px;font-weight:900">'+u.name+'</div><div style="color:var(--txt3);font-size:12px">'+(u.email||'')+'</div><div style="display:flex;justify-content:center;gap:16px;margin-top:12px"><div><div style="font-size:20px;font-weight:900;color:var(--lav3)">'+(u.gamesPlayed||0)+'</div><div style="font-size:10px;color:var(--txt3)">مباراة</div></div><div><div style="font-size:20px;font-weight:900;color:var(--gold)">'+(u.totalScore||0)+'</div><div style="font-size:10px;color:var(--txt3)">نقطة</div></div></div></div>';
+h+='<div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">📜 آخر المباريات</div>';
+if(hkeys.length===0)h+='<div style="color:var(--txt3);font-size:13px;text-align:center;padding:12px">لم يلعب بعد</div>';
+for(var i=hkeys.length-1;i>=0;i--){var g=hist[hkeys[i]];
+h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--card2)"><div>'+(g.pct>=70?'🌟':'📝')+'</div><div style="flex:1;font-size:12px;color:var(--txt2)">'+(g.subject||'')+'</div><div style="font-size:13px;font-weight:700;color:var(--gold)">'+g.score+'/'+g.total+'</div></div>'}
+h+='</div><button class="btn btn-primary" onclick="renderTeacher()">← رجوع للوحة</button>';
+document.getElementById('teacherBody').innerHTML=h})})}
+
+function teacherRefresh(){renderTeacher()}
+
+function reportQuestion(){
+var q=S.qs[S.qi];var btn=document.getElementById('reportBtn');
+if(!btn)return;
+btn.innerHTML='✅ تم الإبلاغ — شكراً لمساعدتك!';btn.style.color='var(--green)';btn.onclick=null;
+if(AUTH.db){
+AUTH.db.ref('reports').push({
+question:q.text,options:q.options,correctAns:q.ans,
+subject:S.subjectName,level:S.level,
+reporter:S.name||'مجهول',email:AUTH.email||'',
+date:Date.now()
+})}}
+
+/* === Premium / Revenue Model === */
+function renderPremium(){
+document.getElementById('premiumBody').innerHTML='<div style="text-align:center;margin-bottom:20px"><div style="font-size:64px">👑</div><div class="grad-text" style="font-size:24px;font-weight:900">النسخة المميزة</div><div style="color:var(--txt3);font-size:13px;margin-top:4px">افتح كل الميزات وادعم التطوير</div></div>'
+
++'<div class="c" style="margin-bottom:12px;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05)">'
++'<div style="text-align:center"><div style="color:var(--gold);font-size:18px;font-weight:900">🆓 النسخة المجانية</div><div style="color:var(--txt3);font-size:11px;margin-top:4px">الخطة الحالية</div></div>'
++'<div style="margin-top:12px;font-size:13px;color:var(--txt2);line-height:2">'
++'✅ 6 مواد دراسية<br>✅ 14,500+ سؤال<br>✅ مسابقات أونلاين<br>✅ لوحة المتصدرين<br>❌ تقارير مفصلة للمعلم<br>❌ أسئلة مخصصة<br>❌ بدون إعلانات<br>❌ شهادات إنجاز</div></div>'
+
++'<div class="c" style="margin-bottom:12px;border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.08)">'
++'<div style="text-align:center"><div style="color:var(--lav3);font-size:18px;font-weight:900">⭐ الاشتراك الشخصي</div><div style="margin-top:4px"><span style="font-size:28px;font-weight:900;color:var(--gold)">9.99</span><span style="color:var(--txt3);font-size:13px"> ريال/شهر</span></div></div>'
++'<div style="margin-top:12px;font-size:13px;color:var(--txt2);line-height:2">'
++'✅ كل ميزات المجانية<br>✅ تقارير أداء مفصلة<br>✅ أسئلة إضافية متقدمة<br>✅ شهادات إنجاز PDF<br>✅ بدون إعلانات<br>✅ ثيمات حصرية</div>'
++'<button class="btn btn-primary" style="margin-top:12px" onclick="alert(\'قريباً! جاري تطوير نظام الدفع\')">اشترك الآن ⭐</button></div>'
+
++'<div class="c" style="margin-bottom:12px;border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.08)">'
++'<div style="text-align:center"><div style="color:var(--green);font-size:18px;font-weight:900">🏫 اشتراك المدرسة</div><div style="margin-top:4px"><span style="font-size:28px;font-weight:900;color:var(--gold)">499</span><span style="color:var(--txt3);font-size:13px"> ريال/شهر</span></div></div>'
++'<div style="margin-top:12px;font-size:13px;color:var(--txt2);line-height:2">'
++'✅ كل ميزات الشخصي<br>✅ لوحة تحكم المعلم<br>✅ تتبع أداء كل طالب<br>✅ إنشاء اختبارات مخصصة<br>✅ تقارير شهرية لولي الأمر<br>✅ حتى 500 طالب<br>✅ دعم فني مباشر</div>'
++'<button class="btn" style="background:rgba(16,185,129,.15);border:1px solid var(--green);color:var(--green);margin-top:12px" onclick="alert(\'تواصل معنا: nukhbat@email.com\')">تواصل معنا 🏫</button></div>'
+
++'<div class="c" style="text-align:center"><div style="color:var(--txt3);font-size:11px;line-height:1.8">💡 النسخة المجانية كافية للاستخدام الشخصي<br>الاشتراك يدعم تطوير المحتوى وإضافة مواد جديدة</div></div>'}
+
+/* === Init Auth on load === */
+authInitApp();
+
+/* === Update splash flow === */
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(e){console.log('SW:',e)})}
 </script>
 </body>
