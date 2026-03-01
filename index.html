@@ -179,7 +179,8 @@ body{display:flex;flex-direction:column}
 </div>
 
 <div id="home" class="screen">
-<div style="padding:20px 0 8px;text-align:center">
+<div style="position:relative;padding:20px 0 8px;text-align:center">
+<div id="onlineCountBadge" onclick="if(AUTH.email===OWNER_EMAIL)showScreen('owner')" style="position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:4px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);padding:4px 10px;border-radius:20px;cursor:pointer;z-index:10"><div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite"></div><span id="onlineNum" style="font-size:12px;font-weight:800;color:var(--green)">0</span></div>
 <div style="width:75px;height:75px;margin:0 auto"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#a855f7"/><stop offset="100%" style="stop-color:#c084fc"/></linearGradient><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#f59e0b"/><stop offset="100%" style="stop-color:#fbbf24"/></linearGradient><linearGradient id="gr" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#10b981"/><stop offset="100%" style="stop-color:#34d399"/></linearGradient><linearGradient id="gb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6"/><stop offset="100%" style="stop-color:#60a5fa"/></linearGradient></defs><circle cx="100" cy="100" r="96" fill="#0e0524" stroke="#7c3aed" stroke-width="2" opacity=".8"/><circle cx="45" cy="85" r="22" fill="url(#gp)"/><circle cx="45" cy="65" r="14" fill="#fde68a"/><circle cx="41" cy="63" r="2" fill="#1e1050"/><circle cx="49" cy="63" r="2" fill="#1e1050"/><path d="M42 69 Q45 72 48 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="37" y="52" width="16" height="4" rx="2" fill="#c084fc"/><circle cx="155" cy="85" r="22" fill="url(#gg)"/><circle cx="155" cy="65" r="14" fill="#fde68a"/><circle cx="151" cy="63" r="2" fill="#1e1050"/><circle cx="159" cy="63" r="2" fill="#1e1050"/><path d="M152 69 Q155 72 158 69" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="147" y="52" width="16" height="4" rx="2" fill="#fbbf24"/><circle cx="65" cy="148" r="22" fill="url(#gr)"/><circle cx="65" cy="128" r="14" fill="#fde68a"/><circle cx="61" cy="126" r="2" fill="#1e1050"/><circle cx="69" cy="126" r="2" fill="#1e1050"/><path d="M62 132 Q65 135 68 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="57" y="115" width="16" height="4" rx="2" fill="#34d399"/><circle cx="135" cy="148" r="22" fill="url(#gb)"/><circle cx="135" cy="128" r="14" fill="#fde68a"/><circle cx="131" cy="126" r="2" fill="#1e1050"/><circle cx="139" cy="126" r="2" fill="#1e1050"/><path d="M132 132 Q135 135 138 132" stroke="#1e1050" stroke-width="1.5" fill="none"/><rect x="127" y="115" width="16" height="4" rx="2" fill="#60a5fa"/><polygon points="100,15 106,28 120,28 109,37 113,50 100,42 87,50 91,37 80,28 94,28" fill="#f59e0b"/><polygon points="100,15 104,24 112,24 106,30 108,38 100,33 92,38 94,30 88,24 96,24" fill="#fde68a"/><rect x="82" y="96" width="36" height="18" rx="6" fill="#1e1050" stroke="#a855f7" stroke-width="2"/><text x="100" y="110" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold" font-family="sans-serif">VS</text><line x1="60" y1="96" x2="82" y2="105" stroke="#c084fc" stroke-width="1.5" opacity=".4"/><line x1="140" y1="96" x2="118" y2="105" stroke="#fbbf24" stroke-width="1.5" opacity=".4"/><line x1="76" y1="135" x2="88" y2="114" stroke="#34d399" stroke-width="1.5" opacity=".4"/><line x1="124" y1="135" x2="112" y2="114" stroke="#60a5fa" stroke-width="1.5" opacity=".4"/></svg></div>
   <div class="grad-text" style="font-size:26px;font-weight:900">نُخبة العقول</div>
 </div>
@@ -193,8 +194,6 @@ body{display:flex;flex-direction:column}
   </div>
 </div>
 <div class="sec-title" style="margin-top:14px"><span>📚 اختر المادة</span><div class="sec-line"></div></div>
-<div style="padding:0 16px;margin-bottom:4px"><div id="onlineBadge" style="text-align:center;font-size:12px;color:var(--green);font-weight:600;padding:6px;background:rgba(16,185,129,.08);border-radius:10px"></div></div>
-<div id="ownerOnlinePanel" style="padding:0 16px"></div>
 <div class="topic-grid" style="padding:8px 16px" id="topicGrid"></div>
 <div style="text-align:center;padding:20px 16px 10px">
 <div onclick="document.getElementById('aboutModal').style.display='flex'" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(245,158,11,.08));border:1px solid rgba(168,85,247,.2);border-radius:16px;cursor:pointer;transition:all .3s">
@@ -302,6 +301,15 @@ body{display:flex;flex-direction:column}
 <div style="flex:1;overflow-y:auto;padding:16px" id="dashBody"></div>
 </div>
 
+<div id="owner" class="screen">
+<div class="header-bar">
+  <div class="icon-btn" onclick="showScreen('home')">→</div>
+  <div style="flex:1;text-align:center;font-size:15px;font-weight:800;color:var(--gold)">👑 لوحة المالك</div>
+  <div class="icon-btn" onclick="renderOwner()">🔄</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px" id="ownerBody"></div>
+</div>
+
 <div id="teacher" class="screen">
 <div class="header-bar">
   <div class="icon-btn" onclick="authLogout()">خروج</div>
@@ -338,7 +346,7 @@ function vib(ms){if(S.vibrate&&navigator.vibrate)navigator.vibrate(ms||30)}
 
 function spawnConfetti(n){if(!S.fx)return;var colors=['#a855f7','#f59e0b','#10b981','#3b82f6','#ef4444','#ec4899','#06b6d4'];for(var i=0;i<(n||60);i++){var el=document.createElement('div');el.className='confetti-piece';var shapes=['■','●','▲','★','◆'];el.textContent=shapes[Math.floor(Math.random()*5)];el.style.cssText='left:'+Math.random()*100+'vw;color:'+colors[i%colors.length]+';font-size:'+(8+Math.random()*8)+'px;animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*.5+'s;opacity:'+(0.6+Math.random()*0.4);document.body.appendChild(el);setTimeout(function(e){return function(){e.remove()}}(el),6000)}}
 
-function showScreen(id){var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();if(id==='dashboard')renderDashboard();if(id==='teacher')renderTeacher();if(id==='premium')renderPremium();sfxClick()}
+function showScreen(id){var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();if(id==='dashboard')renderDashboard();if(id==='teacher')renderTeacher();if(id==='premium')renderPremium();if(id==='owner')renderOwner();sfxClick()}
 
 var selectedLevel=0;
 function selectAge(lv){selectedLevel=lv;sfxClick();var btns=document.querySelectorAll('.age-btn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('selected');document.getElementById('age'+lv).classList.add('selected');checkReg()}
@@ -390,9 +398,8 @@ h+='</div>';
 if(container)container.innerHTML=h});
 }catch(e){}}
 
-function renderHome(){var ub=document.getElementById('homeUserBar');var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];var authBdg=AUTH.uid?'<div style="font-size:9px;color:var(--green)">● مُسجّل</div>':'<div style="font-size:9px;color:var(--gold);cursor:pointer" onclick="showScreen(\'login\')">سجّل دخولك ←</div>';ub.innerHTML='<div class="user-avatar">'+(S.name?S.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700">'+S.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(ln[S.level]||'')+'</div>'+authBdg+'</div><div class="icon-btn" onclick="showScreen(\'dashboard\')">📊</div><div class="icon-btn" onclick="showScreen(\'leaderboard\')">🏆</div><div class="icon-btn" onclick="showScreen(\'settings\')">⚙️</div>';var grid=document.getElementById('topicGrid');var html='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];html+='<div class="topic-card" onclick="startQuiz(\''+s.key+'\',\''+s.name+'\',\''+s.icon+'\')"><div class="topic-icon">'+s.icon+'</div><div class="topic-name">'+s.name+'</div><div class="topic-desc">'+s.desc+'</div></div>'}grid.innerHTML=html;
-getOnlineCount(function(n){var ob=document.getElementById('onlineBadge');if(ob)ob.textContent='🟢 '+n+' متصل الآن';});
-var opanel=document.getElementById('ownerOnlinePanel');if(opanel)renderOnlineUsers(opanel);
+function renderHome(){var ub=document.getElementById('homeUserBar');var ln=['','المستوى الأول (9-11)','المستوى الثاني (12-14)','المستوى الثالث (15-18)'];var authBdg=AUTH.uid?'<div style="font-size:9px;color:var(--green)">● مُسجّل</div>':'<div style="font-size:9px;color:var(--gold);cursor:pointer" onclick="showScreen(\'login\')">سجّل دخولك ←</div>';ub.innerHTML='<div class="user-avatar">'+(S.name?S.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:14px;font-weight:700">'+S.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(ln[S.level]||'')+'</div>'+authBdg+'</div>'+(AUTH.email===OWNER_EMAIL?'<div class="icon-btn" onclick="showScreen(\'owner\')" style="color:var(--gold)">👑</div>':'')+'<div class="icon-btn" onclick="showScreen(\'dashboard\')">📊</div><div class="icon-btn" onclick="showScreen(\'leaderboard\')">🏆</div><div class="icon-btn" onclick="showScreen(\'settings\')">⚙️</div>';var grid=document.getElementById('topicGrid');var html='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];html+='<div class="topic-card" onclick="startQuiz(\''+s.key+'\',\''+s.name+'\',\''+s.icon+'\')"><div class="topic-icon">'+s.icon+'</div><div class="topic-name">'+s.name+'</div><div class="topic-desc">'+s.desc+'</div></div>'}grid.innerHTML=html;
+getOnlineCount(function(n){var onum=document.getElementById('onlineNum');if(onum)onum.textContent=n;});
 if(!WELCOME_SHOWN)setTimeout(showWelcome,600)}
 
 function renderLeaderboard(){var lb=S.leaderboard;var medals=['🥇','🥈','🥉'];var colors=[['#f59e0b','#f97316'],['#a855f7','#7c3aed'],['#f97316','#ef4444']];var h='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">🏆</div><div style="font-size:24px;font-weight:900">لوحة المتصدرين</div><div style="color:var(--txt3);font-size:13px">أفضل 10 لاعبين</div></div>';if(lb.length===0){h+='<div style="text-align:center;padding:40px"><div style="font-size:48px">📭</div><div style="color:var(--txt3)">لا توجد نتائج بعد</div></div>'}h+='<div style="margin-top:16px">';for(var i=0;i<lb.length;i++){var e=lb[i];var t3=i<3;h+='<div class="lb-row"'+(e.name===S.name?' style="border-color:var(--lav)"':'')+'><div style="width:28px;text-align:center;font-weight:900;font-size:'+(t3?'18':'16')+'px;color:var(--txt3)">'+(t3?medals[i]:(i+1))+'</div><div class="lb-avatar" style="background:'+(t3?'linear-gradient(135deg,'+colors[i][0]+','+colors[i][1]+')':'var(--card2)')+'">'+e.name[0]+'</div><div class="lb-info"><div style="font-size:14px;font-weight:600">'+e.name+'</div><div style="font-size:11px;color:var(--txt3)">'+(e.subject||'')+'</div></div><div style="text-align:left"><div style="font-size:16px;font-weight:900;color:var(--gold)">'+e.pct+'%</div><div style="font-size:11px;color:var(--txt3)">'+e.score+'/'+e.total+'</div></div></div>'}h+='</div>';document.getElementById('lbBody').innerHTML=h}
@@ -401,9 +408,9 @@ function renderSettings(){var ln=['','المستوى الأول (9-11)','الم�
 function resetProfile(){sfxClick();S.name='';S.level=0;save();selectedLevel=0;showScreen('register')}
 function clearAllData(){if(!confirm('سيتم مسح جميع البيانات. متأكد؟'))return;try{localStorage.clear()}catch(e){}location.reload()}
 
-function renderBattle(){document.getElementById('battleBody').innerHTML='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">⚔️</div><div class="grad-text" style="font-size:24px;font-weight:900">المسابقة</div><div style="color:var(--txt3);font-size:13px">نافس صديقك!</div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🏠 إنشاء غرفة</div><button class="btn btn-gold" style="margin-top:8px" onclick="createRoom()">إنشاء غرفة ⚡</button><div id="roomInfo" style="display:none;text-align:center;margin-top:12px"><div style="color:var(--txt3)">كود الغرفة:</div><div id="roomCode" style="font-size:32px;font-weight:900;color:var(--gold);letter-spacing:6px"></div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🔑 الانضمام</div><div style="display:flex;gap:8px;margin-top:8px"><input id="joinCode" class="inp" placeholder="أدخل الكود" maxlength="6" style="text-align:center;letter-spacing:4px;font-size:18px"><button class="btn btn-primary btn-sm" style="width:auto" onclick="joinRoom()">انضمام</button></div></div><div id="battleSubjects" style="display:none"><div class="c"><div style="color:var(--lav3);font-size:16px;font-weight:700;margin-bottom:8px">📚 اختر مادة</div><div id="battleTopics" style="display:flex;flex-wrap:wrap;gap:8px"></div><button class="btn btn-gold" style="margin-top:16px" onclick="startBattle()">🚀 ابدأ!</button></div></div>'}
-function createRoom(){sfxClick();S.roomCode=String(100000+Date.now()%900000);document.getElementById('roomCode').textContent=S.roomCode;document.getElementById('roomInfo').style.display='block';document.getElementById('battleSubjects').style.display='block';renderBattleTopics()}
-function joinRoom(){var code=document.getElementById('joinCode').value.trim();if(code.length<4)return;sfxClick();S.roomCode=code;document.getElementById('battleSubjects').style.display='block';renderBattleTopics()}
+function renderBattle(){document.getElementById('battleBody').innerHTML='<div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">⚔️</div><div class="grad-text" style="font-size:24px;font-weight:900">المسابقة</div><div style="color:var(--txt3);font-size:13px">نافس صديقك!</div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🏠 إنشاء غرفة</div><button class="btn btn-gold" style="margin-top:8px" onclick="createRoom()">إنشاء غرفة ⚡</button><div id="roomInfo" style="display:none;text-align:center;margin-top:12px"><div style="color:var(--txt3)">كود الغرفة:</div><div id="roomCode" style="font-size:32px;font-weight:900;color:var(--gold);letter-spacing:6px"></div></div></div><div class="c" style="margin-bottom:12px"><div style="color:var(--lav3);font-size:16px;font-weight:700">🔑 الانضمام</div><div style="display:flex;gap:8px;margin-top:8px"><input id="joinCode" class="inp" placeholder="أدخل الكود" maxlength="6" style="text-align:center;letter-spacing:4px;font-size:18px"><button class="btn btn-primary btn-sm" style="width:auto" onclick="joinRoom()">انضمام</button></div></div><div id="battleSubjects" style="display:none"><div class="c"><div style="color:var(--lav3);font-size:16px;font-weight:700;margin-bottom:8px">📚 اختر مادة</div><div id="battleTopics" style="display:flex;flex-wrap:wrap;gap:8px"></div><button class="btn btn-gold" style="margin-top:16px" onclick="startBattle()">🚀 ابدأ!</button></div></div><div id="battleChatArea"></div>'}
+function createRoom(){sfxClick();S.roomCode=String(100000+Date.now()%900000);document.getElementById('roomCode').textContent=S.roomCode;document.getElementById('roomInfo').style.display='block';document.getElementById('battleSubjects').style.display='block';renderBattleTopics();var chatArea=document.getElementById('battleChatArea');if(chatArea)chatArea.innerHTML=renderBattleChat(S.roomCode);initBattleChat(S.roomCode)}
+function joinRoom(){var code=document.getElementById('joinCode').value.trim();if(code.length<4)return;sfxClick();S.roomCode=code;document.getElementById('battleSubjects').style.display='block';renderBattleTopics();var chatArea=document.getElementById('battleChatArea');if(chatArea)chatArea.innerHTML=renderBattleChat(S.roomCode);initBattleChat(S.roomCode)}
 function renderBattleTopics(){var el=document.getElementById('battleTopics');var h='';for(var i=0;i<SUBJECTS.length;i++){var s=SUBJECTS[i];var sel=S.battleSubject===s.key;h+='<div class="chip" style="cursor:pointer;padding:8px 14px;border-radius:12px;font-size:13px;border:2px solid '+(sel?'var(--lav)':'rgba(168,85,247,.2)')+';background:'+(sel?'var(--lavbg)':'transparent')+';color:'+(sel?'var(--lav3)':'var(--txt2)')+'" onclick="S.battleSubject=\''+s.key+'\';renderBattleTopics();sfxClick()">'+s.icon+' '+s.name+'</div>'}el.innerHTML=h}
 function startBattle(){if(!S.battleSubject){alert('اختر مادة أولاً!');return}var s=null;for(var i=0;i<SUBJECTS.length;i++){if(SUBJECTS[i].key===S.battleSubject){s=SUBJECTS[i];break}}if(s)startQuiz(s.key,s.name,s.icon,10,true)}
 
@@ -1299,14 +1306,16 @@ var email=document.getElementById('authEmail').value.trim();
 var pass=document.getElementById('authPass').value;
 if(!email||!pass){authShowErr('أدخل البريد وكلمة المرور');return}
 firebase.auth().signInWithEmailAndPassword(email,pass).then(function(r){
-AUTH.uid=r.user.uid;AUTH.email=email;AUTH.role='teacher';
-AUTH.db.ref('users/'+AUTH.uid+'/role').set('teacher');
-showScreen('teacher');
-}).catch(function(e){
+AUTH.uid=r.user.uid;AUTH.email=email;
+AUTH.db.ref('users/'+AUTH.uid).once('value').then(function(snap){
+var u=snap.val()||{};
+if(u.role==='teacher'&&u.approved){AUTH.role='teacher';showScreen('teacher')}
+else{AUTH.role='teacher';AUTH.db.ref('users/'+AUTH.uid).update({role:'teacher',name:u.name||'معلم',email:email});showScreen('teacher')}
+})}).catch(function(e){
 if(e.code==='auth/user-not-found'){
 firebase.auth().createUserWithEmailAndPassword(email,pass).then(function(r){
 AUTH.uid=r.user.uid;AUTH.email=email;AUTH.role='teacher';
-AUTH.db.ref('users/'+AUTH.uid).set({name:'معلم',email:email,role:'teacher',created:Date.now()});
+AUTH.db.ref('users/'+AUTH.uid).set({name:'معلم',email:email,role:'teacher',approved:false,created:Date.now()});
 showScreen('teacher');
 }).catch(function(e2){authShowErr('خطأ: '+e2.message)})}
 else if(e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'){authShowErr('كلمة المرور غير صحيحة 🔑')}
@@ -1388,6 +1397,44 @@ el.innerHTML=h}
 function renderTeacher(){
 var el=document.getElementById('teacherBody');
 if(!AUTH.uid||!AUTH.db){el.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:48px">🔐</div><div style="color:var(--txt3);margin-top:8px">سجّل دخولك كمعلم أولاً</div></div>';return}
+/* Check approval */
+AUTH.db.ref('users/'+AUTH.uid).once('value').then(function(uSnap){
+var uData=uSnap.val()||{};
+if(!uData.approved&&AUTH.email!==OWNER_EMAIL){
+el.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:64px">⏳</div><div style="font-size:18px;font-weight:700;color:var(--gold);margin-top:12px">بانتظار موافقة المالك</div><div style="color:var(--txt3);font-size:13px;margin-top:8px;line-height:1.8">تم إرسال طلبك كمعلم.<br>سيقوم المالك بمراجعة طلبك والموافقة عليه.</div><div class="c" style="margin-top:20px;border-color:rgba(168,85,247,.2)"><div style="font-size:13px;color:var(--txt3)">بريدك: <span style="color:var(--lav3)">'+AUTH.email+'</span></div></div><button class="btn btn-ghost" style="margin-top:16px;color:var(--lav3)" onclick="renderTeacher()">🔄 تحقق مرة أخرى</button><button class="btn btn-ghost" style="margin-top:8px;color:var(--txt3)" onclick="showScreen(\'home\')">← الرئيسية</button></div>';
+/* Add chat with owner */
+var chatDiv=document.createElement('div');chatDiv.className='c';chatDiv.style.cssText='margin:16px;border-color:rgba(168,85,247,.2)';
+chatDiv.innerHTML='<div style="color:var(--lav3);font-size:14px;font-weight:700;margin-bottom:8px">💬 تواصل مع المالك</div><div id="teacherChatMsgs" style="height:200px;overflow-y:auto;padding:6px;background:rgba(0,0,0,.2);border-radius:10px;margin-bottom:8px"></div><div style="display:flex;gap:6px"><input id="teacherChatInput" class="inp" placeholder="اكتب رسالة..." style="flex:1;font-size:12px" onkeydown="if(event.key===\'Enter\')sendTeacherChat()"><button onclick="sendTeacherChat()" style="background:var(--lav);color:#fff;border:none;padding:6px 12px;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit">📤</button></div>';
+el.appendChild(chatDiv);
+initTeacherChat();
+return}
+/* Approved — load dashboard */
+renderTeacherDashboard(el)})}
+
+function initTeacherChat(){
+if(!AUTH.db||!AUTH.uid)return;
+var ownerUid=null;
+AUTH.db.ref('users').orderByChild('email').equalTo(OWNER_EMAIL).once('value').then(function(snap){
+snap.forEach(function(ch){ownerUid=ch.key});
+if(!ownerUid)return;
+AUTH._ownerUid=ownerUid;
+var chatId=AUTH.uid<ownerUid?AUTH.uid+'_'+ownerUid:ownerUid+'_'+AUTH.uid;
+AUTH._teacherChatId=chatId;
+AUTH.db.ref('chats/'+chatId).orderByChild('time').limitToLast(30).on('value',function(mSnap){
+var msgs=mSnap.val()||{};var mkeys=Object.keys(msgs).sort(function(a,b){return(msgs[a].time||0)-(msgs[b].time||0)});
+var mh='';
+for(var i=0;i<mkeys.length;i++){var m=msgs[mkeys[i]];var isMe=m.sender===AUTH.uid;
+mh+='<div style="display:flex;justify-content:'+(isMe?'flex-start':'flex-end')+';margin-bottom:4px"><div style="max-width:75%;padding:6px 10px;border-radius:10px;font-size:12px;background:'+(isMe?'rgba(168,85,247,.12)':'rgba(245,158,11,.12)')+';color:var(--txt2)">'+m.text+'<div style="font-size:9px;color:var(--txt3);margin-top:2px">'+timeSince(m.time)+'</div></div></div>'}
+var el=document.getElementById('teacherChatMsgs');if(el){el.innerHTML=mh;el.scrollTop=el.scrollHeight}})})}
+
+function sendTeacherChat(){
+if(!AUTH.db||!AUTH._teacherChatId)return;
+var inp=document.getElementById('teacherChatInput');if(!inp)return;
+var txt=inp.value.trim();if(!txt)return;
+AUTH.db.ref('chats/'+AUTH._teacherChatId).push({text:txt,sender:AUTH.uid,senderName:S.name||'معلم',time:Date.now()});
+inp.value=''}
+
+function renderTeacherDashboard(el){
 el.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:36px" class="anim-bounce">⏳</div><div style="color:var(--txt3);margin-top:8px">جاري تحميل البيانات...</div></div>';
 AUTH.db.ref('users').orderByChild('lastPlayed').limitToLast(50).once('value').then(function(snap){
 var users=snap.val()||{};
@@ -1517,6 +1564,112 @@ h+='<button class="btn btn-primary" onclick="renderTeacher()" style="margin-bott
 document.getElementById('teacherBody').innerHTML=h})})}
 
 function teacherRefresh(){renderTeacher()}
+
+/* === Owner Dashboard === */
+function renderOwner(){
+var el=document.getElementById('ownerBody');
+if(!AUTH.uid||AUTH.email!==OWNER_EMAIL){el.innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:48px">🔒</div><div style="color:var(--txt3);margin-top:8px">هذه الصفحة للمالك فقط</div></div>';return}
+el.innerHTML='<div style="text-align:center;padding:20px"><div class="anim-bounce" style="font-size:36px">⏳</div></div>';
+
+AUTH.db.ref('users').once('value').then(function(snap){
+var users=snap.val()||{};var keys=Object.keys(users);
+var teachers=[];var students=[];var pending=[];
+for(var i=0;i<keys.length;i++){var u=users[keys[i]];u._uid=keys[i];
+if(u.role==='teacher'){if(u.approved)teachers.push(u);else pending.push(u)}
+else if(u.role!=='owner')students.push(u)}
+
+var h='<div class="c" style="text-align:center;margin-bottom:12px;padding:16px;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05)"><div style="font-size:36px">👑</div><div style="font-size:20px;font-weight:900;color:var(--gold)">لوحة المالك</div><div style="color:var(--txt3);font-size:12px">إدارة المعلمين والطلاب</div></div>';
+
+/* Stats */
+h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">';
+h+='<div class="c" style="text-align:center;padding:10px"><div style="font-size:22px;font-weight:900;color:var(--green)">'+students.length+'</div><div style="font-size:10px;color:var(--txt3)">طالب</div></div>';
+h+='<div class="c" style="text-align:center;padding:10px"><div style="font-size:22px;font-weight:900;color:var(--lav3)">'+teachers.length+'</div><div style="font-size:10px;color:var(--txt3)">معلم مفعّل</div></div>';
+h+='<div class="c" style="text-align:center;padding:10px"><div style="font-size:22px;font-weight:900;color:var(--gold)">'+pending.length+'</div><div style="font-size:10px;color:var(--txt3)">بانتظار الموافقة</div></div></div>';
+
+/* Pending Teachers */
+if(pending.length>0){
+h+='<div class="c" style="margin-bottom:12px;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)"><div style="color:var(--gold);font-size:14px;font-weight:700;margin-bottom:8px">⏳ طلبات المعلمين ('+pending.length+')</div>';
+for(var i=0;i<pending.length;i++){var t=pending[i];
+h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(255,255,255,.05)"><div class="lb-avatar" style="width:32px;height:32px;font-size:14px;background:var(--gold)">'+(t.name?t.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:13px;font-weight:600">'+t.name+'</div><div style="font-size:10px;color:var(--txt3)">'+(t.email||'')+'</div></div><button onclick="approveTeacher(\''+t._uid+'\')" style="background:var(--green);color:#fff;border:none;padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✅ قبول</button><button onclick="rejectTeacher(\''+t._uid+'\')" style="background:rgba(239,68,68,.2);color:var(--red);border:none;padding:4px 10px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit">❌</button></div>'}
+h+='</div>'}
+
+/* Approved Teachers */
+h+='<div class="c" style="margin-bottom:12px"><div style="color:var(--green);font-size:14px;font-weight:700;margin-bottom:8px">🍎 المعلمون المعتمدون ('+teachers.length+')</div>';
+if(teachers.length===0)h+='<div style="text-align:center;color:var(--txt3);font-size:12px;padding:12px">لا يوجد معلمون معتمدون بعد</div>';
+for(var i=0;i<teachers.length;i++){var t=teachers[i];
+h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(255,255,255,.05)"><div class="lb-avatar" style="width:32px;height:32px;font-size:14px;background:var(--green)">'+(t.name?t.name[0]:'?')+'</div><div style="flex:1"><div style="font-size:13px;font-weight:600">'+t.name+'</div><div style="font-size:10px;color:var(--txt3)">'+(t.email||'')+'</div></div><button onclick="openOwnerChat(\''+t._uid+'\',\''+t.name+'\')" style="background:rgba(168,85,247,.15);color:var(--lav3);border:none;padding:4px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit">💬</button><button onclick="revokeTeacher(\''+t._uid+'\')" style="background:rgba(239,68,68,.1);color:var(--red);border:none;padding:4px 10px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit">🚫</button></div>'}
+h+='</div>';
+
+/* All Online Now */
+h+='<div class="c" style="margin-bottom:12px" id="ownerAllOnline"><div style="color:var(--green);font-size:14px;font-weight:700;margin-bottom:8px">🟢 المتصلون الآن</div><div style="text-align:center;color:var(--txt3);font-size:12px">جاري التحميل...</div></div>';
+
+el.innerHTML=h;
+
+/* Load online users */
+firebase.database().ref('presence').orderByChild('online').equalTo(true).once('value').then(function(oSnap){
+var oPanel=document.getElementById('ownerAllOnline');if(!oPanel)return;
+var count=oSnap.numChildren();var oh='<div style="color:var(--green);font-size:14px;font-weight:700;margin-bottom:8px">🟢 المتصلون الآن ('+count+')</div>';
+oSnap.forEach(function(ch){var u=ch.val();
+oh+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0"><div style="width:7px;height:7px;border-radius:50%;background:var(--green)"></div><span style="font-size:12px;color:var(--txt2)">'+u.name+'</span></div>'});
+oPanel.innerHTML=oh})
+})}
+
+function approveTeacher(uid){
+AUTH.db.ref('users/'+uid+'/approved').set(true).then(function(){renderOwner()})}
+
+function rejectTeacher(uid){
+if(confirm('رفض هذا المعلم؟'))AUTH.db.ref('users/'+uid+'/role').set('student').then(function(){renderOwner()})}
+
+function revokeTeacher(uid){
+if(confirm('إلغاء صلاحية هذا المعلم؟')){AUTH.db.ref('users/'+uid+'/approved').set(false);AUTH.db.ref('users/'+uid+'/role').set('student');renderOwner()}}
+
+/* === Owner-Teacher Chat === */
+function openOwnerChat(targetUid,targetName){
+var chatId=AUTH.uid<targetUid?AUTH.uid+'_'+targetUid:targetUid+'_'+AUTH.uid;
+var el=document.getElementById('ownerBody');
+el.innerHTML='<div class="c" style="margin-bottom:8px;text-align:center;padding:12px"><div style="font-size:28px">💬</div><div style="font-size:16px;font-weight:800;color:var(--lav3)">محادثة مع '+targetName+'</div></div><div id="chatMsgs" style="height:400px;overflow-y:auto;padding:8px;background:rgba(0,0,0,.2);border-radius:12px;margin-bottom:8px"></div><div style="display:flex;gap:8px"><input id="chatInput" class="inp" placeholder="اكتب رسالة..." style="flex:1" onkeydown="if(event.key===\'Enter\')sendOwnerMsg(\''+chatId+'\')"><button onclick="sendOwnerMsg(\''+chatId+'\')" style="background:var(--lav);color:#fff;border:none;padding:8px 16px;border-radius:12px;font-size:14px;cursor:pointer">📤</button></div><button class="btn btn-ghost" style="margin-top:8px;color:var(--lav3)" onclick="renderOwner()">← رجوع</button>';
+
+AUTH.db.ref('chats/'+chatId).orderByChild('time').limitToLast(50).on('value',function(snap){
+var msgs=snap.val()||{};var mkeys=Object.keys(msgs).sort(function(a,b){return(msgs[a].time||0)-(msgs[b].time||0)});
+var mh='';
+for(var i=0;i<mkeys.length;i++){var m=msgs[mkeys[i]];var isMe=m.sender===AUTH.uid;
+mh+='<div style="display:flex;justify-content:'+(isMe?'flex-start':'flex-end')+';margin-bottom:6px"><div style="max-width:75%;padding:8px 12px;border-radius:12px;font-size:13px;background:'+(isMe?'rgba(168,85,247,.15)':'rgba(16,185,129,.15)')+';color:var(--txt2)">'+m.text+'<div style="font-size:9px;color:var(--txt3);margin-top:2px">'+timeSince(m.time)+'</div></div></div>'}
+var el=document.getElementById('chatMsgs');if(el){el.innerHTML=mh;el.scrollTop=el.scrollHeight}})}
+
+function sendOwnerMsg(chatId){
+var inp=document.getElementById('chatInput');var txt=inp.value.trim();if(!txt)return;
+AUTH.db.ref('chats/'+chatId).push({text:txt,sender:AUTH.uid,senderName:S.name||'المالك',time:Date.now()});
+inp.value=''}
+
+/* === Battle Chat === */
+function renderBattleChat(roomCode){
+if(!AUTH.db||!roomCode)return'';
+return '<div class="c" style="margin-top:12px;border-color:rgba(245,158,11,.2)"><div style="color:var(--gold);font-size:14px;font-weight:700;margin-bottom:8px">💬 دردشة المنافسين</div><div id="battleChatMsgs" style="height:150px;overflow-y:auto;padding:6px;background:rgba(0,0,0,.2);border-radius:10px;margin-bottom:8px;font-size:12px"></div><div style="display:flex;gap:6px"><input id="battleChatInput" class="inp" placeholder="اكتب رسالة..." style="flex:1;font-size:12px;padding:6px 10px" onkeydown="if(event.key===\'Enter\')sendBattleMsg()"><button onclick="sendBattleVibrate()" style="background:rgba(245,158,11,.15);color:var(--gold);border:none;padding:6px 10px;border-radius:10px;font-size:16px;cursor:pointer">📳</button><button onclick="sendBattleMsg()" style="background:var(--lav);color:#fff;border:none;padding:6px 12px;border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit">📤</button></div></div>'}
+
+function initBattleChat(roomCode){
+if(!AUTH.db||!roomCode)return;
+AUTH.db.ref('battleChats/'+roomCode).orderByChild('time').limitToLast(30).on('value',function(snap){
+var msgs=snap.val()||{};var mkeys=Object.keys(msgs).sort(function(a,b){return(msgs[a].time||0)-(msgs[b].time||0)});
+var mh='';
+for(var i=0;i<mkeys.length;i++){var m=msgs[mkeys[i]];var isMe=m.sender===AUTH.uid;
+if(m.type==='vibrate'){
+mh+='<div style="text-align:center;margin:4px 0;font-size:11px;color:var(--gold)">📳 '+m.senderName+' أرسل اهتزاز!</div>';
+if(!isMe&&S.vibrate)try{navigator.vibrate([200,100,200])}catch(e){}
+}else{
+mh+='<div style="display:flex;justify-content:'+(isMe?'flex-start':'flex-end')+';margin-bottom:4px"><div style="max-width:70%;padding:5px 10px;border-radius:10px;font-size:12px;background:'+(isMe?'rgba(168,85,247,.12)':'rgba(245,158,11,.12)')+';color:var(--txt2)"><span style="font-size:9px;color:var(--txt3)">'+m.senderName+': </span>'+m.text+'</div></div>'}}
+var el=document.getElementById('battleChatMsgs');if(el){el.innerHTML=mh;el.scrollTop=el.scrollHeight}})}
+
+function sendBattleMsg(){
+if(!AUTH.db||!S.roomCode)return;
+var inp=document.getElementById('battleChatInput');if(!inp)return;
+var txt=inp.value.trim();if(!txt)return;
+AUTH.db.ref('battleChats/'+S.roomCode).push({text:txt,sender:AUTH.uid||'anon',senderName:S.name||'مجهول',time:Date.now(),type:'text'});
+inp.value=''}
+
+function sendBattleVibrate(){
+if(!AUTH.db||!S.roomCode)return;
+AUTH.db.ref('battleChats/'+S.roomCode).push({sender:AUTH.uid||'anon',senderName:S.name||'مجهول',time:Date.now(),type:'vibrate'});
+if(S.vibrate)try{navigator.vibrate([100,50,100])}catch(e){}}
 
 function reportQuestion(){
 var q=S.qs[S.qi];var btn=document.getElementById('reportBtn');
