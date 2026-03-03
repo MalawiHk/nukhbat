@@ -95,6 +95,36 @@ body{display:flex;flex-direction:column}
 
 
 
+
+/* === RADIO RIPPLE ICON === */
+.radio-ripple{position:relative;width:44px;height:44px;flex-shrink:0}
+.radio-ripple .rr-ring{position:absolute;border:2px solid #3b82f6;border-radius:50%;animation:rrPulse 2s ease-out infinite}
+.radio-ripple .rr-ring:nth-child(1){inset:0;opacity:.15;animation-delay:0s}
+.radio-ripple .rr-ring:nth-child(2){inset:6px;opacity:.3;animation-delay:.3s}
+.radio-ripple .rr-ring:nth-child(3){inset:12px;opacity:.5;animation-delay:.6s}
+.radio-ripple .rr-core{position:absolute;inset:14px;background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.radio-ripple .rr-core::after{content:'';width:0;height:0;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent #fff;margin-left:2px}
+@keyframes rrPulse{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.25);opacity:0}}
+
+/* Playing state */
+.radio-ripple.playing .rr-ring{border-color:#4ade80;animation:rrPulseGreen 1.5s ease-out infinite}
+.radio-ripple.playing .rr-core{background:linear-gradient(135deg,#059669,#10b981)}
+.radio-ripple.playing .rr-core::after{border-width:0;width:10px;height:10px;border-radius:2px;background:#fff;margin:0}
+@keyframes rrPulseGreen{0%{transform:scale(.85);opacity:.8}100%{transform:scale(1.35);opacity:0}}
+
+/* Stop button */
+.radio-stop{width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.radio-stop:active{transform:scale(.9);background:rgba(239,68,68,.2)}
+.radio-stop::after{content:'';width:12px;height:12px;background:#ef4444;border-radius:2px}
+
+/* Now playing bar ripple */
+.radio-np-ripple{position:relative;width:36px;height:36px;flex-shrink:0}
+.radio-np-ripple .rr-ring{position:absolute;border:2px solid #4ade80;border-radius:50%;animation:rrPulseGreen 1.5s ease-out infinite}
+.radio-np-ripple .rr-ring:nth-child(1){inset:0;opacity:.2;animation-delay:0s}
+.radio-np-ripple .rr-ring:nth-child(2){inset:5px;opacity:.4;animation-delay:.25s}
+.radio-np-ripple .rr-ring:nth-child(3){inset:10px;opacity:.7;animation-delay:.5s}
+.radio-np-ripple .rr-core{position:absolute;inset:12px;background:#4ade80;border-radius:50%}
+
 /* === RADIO PLAYER === */
 .radio-card{background:linear-gradient(135deg,rgba(30,58,95,.6),rgba(28,48,80,.4));border:1.5px solid rgba(96,165,250,.15);border-radius:18px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
 .radio-card:active{transform:scale(.97)}
@@ -4543,7 +4573,24 @@ var RADIO_STATIONS=[
 {name:'Lofi Hip Hop Radio',desc:'لوفي للمذاكرة والتركيز',country:'🌍',cat:'focus',url:'https://play.streamafrica.net/lofiradio',lang:'Music'},
 {name:'Study Music',desc:'موسيقى هادئة للدراسة',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/43/128.mp3',lang:'Music'},
 {name:'Nature Sounds',desc:'أصوات طبيعية للاسترخاء',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/29/128.mp3',lang:'Ambient'},
-{name:'Piano Radio',desc:'بيانو هادئ للتركيز',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/22/128.mp3',lang:'Music'}
+{name:'Piano Radio',desc:'بيانو هادئ للتركيز',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/22/128.mp3',lang:'Music'},
+/* 🇺🇸 American Stations from Different States */
+{name:'WBEZ Chicago',desc:'شيكاغو — إلينوي (لهجة الغرب الأوسط)',country:'🇺🇸',cat:'edu',url:'https://stream.wbez.org/wbez128',lang:'English',state:'Illinois'},
+{name:'KERA Dallas',desc:'دالاس — تكساس (لهجة جنوبية)',country:'🇺🇸',cat:'edu',url:'https://kera.streamguys1.com/keralive',lang:'English',state:'Texas'},
+{name:'OPB Portland',desc:'بورتلاند — أوريغون (شمال غربي)',country:'🇺🇸',cat:'edu',url:'https://stream3.opb.org/radio.mp3',lang:'English',state:'Oregon'},
+{name:'WAMU Washington',desc:'واشنطن العاصمة (اللهجة الشرقية)',country:'🇺🇸',cat:'news',url:'https://wamu-1.streamguys.com',lang:'English',state:'DC'},
+{name:'WHYY Philadelphia',desc:'فيلادلفيا — بنسلفانيا',country:'🇺🇸',cat:'edu',url:'https://whyy.streamguys1.com/whyy-mp3',lang:'English',state:'Pennsylvania'},
+{name:'WUNC Chapel Hill',desc:'نورث كارولاينا (لهجة جنوبية)',country:'🇺🇸',cat:'edu',url:'https://audio-mp3.ibiblio.org/wunc-128',lang:'English',state:'N. Carolina'},
+{name:'MPR Minnesota',desc:'مينيسوتا (لهجة الشمال)',country:'🇺🇸',cat:'news',url:'https://nis.stream.publicradio.org/nis.mp3',lang:'English',state:'Minnesota'},
+{name:'KNBA Anchorage',desc:'ألاسكا — صوت السكان الأصليين',country:'🇺🇸',cat:'edu',url:'https://ice42.securenetsystems.net/KNBA',lang:'English',state:'Alaska'},
+{name:'Hawaii Public Radio',desc:'هاواي — ثقافة المحيط الهادي',country:'🇺🇸',cat:'edu',url:'https://stream.khpr.org/khpr',lang:'English',state:'Hawaii'},
+{name:'WWNO New Orleans',desc:'نيو أورلينز — لويزيانا (كريول)',country:'🇺🇸',cat:'edu',url:'https://wwno.streamguys1.com/wwno-mp3',lang:'English',state:'Louisiana'},
+{name:'Vermont Public',desc:'فيرمونت (لهجة نيو إنغلاند)',country:'🇺🇸',cat:'edu',url:'https://vpr.streamguys1.com/vpr64.mp3',lang:'English',state:'Vermont'},
+{name:'WUSF Tampa',desc:'تامبا — فلوريدا',country:'🇺🇸',cat:'news',url:'https://wusf-ice.streamguys1.com/wusfhd1',lang:'English',state:'Florida'},
+{name:'KJZZ Phoenix',desc:'فينكس — أريزونا (الجنوب الغربي)',country:'🇺🇸',cat:'edu',url:'https://kjzz.streamguys1.com/kjzz_mp3_128',lang:'English',state:'Arizona'},
+{name:'KUOW Seattle',desc:'سياتل — واشنطن (شمال غربي)',country:'🇺🇸',cat:'edu',url:'https://playerservices.streamtheworld.com/api/livestream-redirect/KUOWFM_HIGH_MP3',lang:'English',state:'Washington'},
+{name:'Colorado Public',desc:'كولورادو (لهجة الجبال الغربية)',country:'🇺🇸',cat:'edu',url:'https://cpr.streamguys1.com/cpr-news',lang:'English',state:'Colorado'},
+{name:'Georgia Public',desc:'أتلانتا — جورجيا (لهجة جنوبية عميقة)',country:'🇺🇸',cat:'edu',url:'https://playerservices.streamtheworld.com/api/livestream-redirect/WABORADIO',lang:'English',state:'Georgia'}
 ]
 
 var radioAudio=null;
@@ -4572,9 +4619,9 @@ h+='</div>';
 if(radioPlaying>=0){
 var st=RADIO_STATIONS[radioPlaying];
 h+='<div style="background:linear-gradient(135deg,rgba(74,222,128,.12),rgba(52,211,153,.08));border:1.5px solid rgba(74,222,128,.25);border-radius:18px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px">';
-h+='<div class="radio-eq"><span></span><span></span><span></span><span></span><span></span></div>';
+h+='<div class="radio-np-ripple"><div class="rr-ring"></div><div class="rr-ring"></div><div class="rr-ring"></div><div class="rr-core"></div></div>';
 h+='<div style="flex:1"><div style="font-size:13px;font-weight:800;color:var(--green)">يعمل الآن</div><div style="font-size:12px;color:var(--txt2)">'+st.country+' '+st.name+'</div></div>';
-h+='<div onclick="radioStop()" style="width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px">⏹</div>';
+h+='<div class="radio-stop" style="width:36px;height:36px" onclick="radioStop()"></div>';
 h+='</div>';
 }
 
@@ -4585,12 +4632,12 @@ if(radioFilter!=='all'&&st.cat!==radioFilter)continue;
 var isPlaying=radioPlaying===i;
 h+='<div class="radio-card'+(isPlaying?' playing':'')+'" onclick="radioToggle('+i+')">';
 h+='<div style="display:flex;align-items:center;gap:12px">';
-h+='<div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,'+(isPlaying?'#059669,#10b981':'#1e3a5f,#2563eb')+');display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(isPlaying?'<div class="radio-eq" style="height:14px"><span style="background:#fff"></span><span style="background:#fff"></span><span style="background:#fff"></span></div>':'▶')+'</div>';
+h+='<div class="radio-ripple'+(isPlaying?' playing':'')+'"><div class="rr-ring"></div><div class="rr-ring"></div><div class="rr-ring"></div><div class="rr-core"></div></div>';
 h+='<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;color:'+(isPlaying?'var(--green)':'var(--txt)')+';display:flex;align-items:center;gap:6px">'+st.name+' '+st.country+'</div>';
 h+='<div style="font-size:11px;color:var(--txt3);margin-top:2px">'+st.desc+'</div>';
-h+='<div style="display:flex;gap:6px;margin-top:4px"><span style="font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(96,165,250,.1);color:var(--lav3)">'+st.lang+'</span></div>';
+h+='<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap"><span style="font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(96,165,250,.1);color:var(--lav3)">'+st.lang+'</span>'+(st.state?'<span style="font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(251,191,36,.1);color:#fbbf24">📍 '+st.state+'</span>':'')+'</div>';
 h+='</div>';
-if(isPlaying){h+='<div onclick="event.stopPropagation();radioStop()" style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer">⏹</div>'}
+if(isPlaying){h+='<div class="radio-stop" onclick="event.stopPropagation();radioStop()"></div>'}
 h+='</div></div>';
 }
 
@@ -4627,7 +4674,7 @@ renderRadio();
 var body=document.getElementById('radioBody');
 if(body){var err=document.createElement('div');
 err.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,.9);color:#fff;padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;z-index:9999;animation:fadeUp .3s';
-err.innerHTML='⚠️ تعذّر التشغيل<br><span style="font-size:11px">جرّب من GitHub Pages أو محطة أخرى</span>';
+err.textContent='⚠️ تعذّر تشغيل المحطة — جرّب محطة أخرى';
 document.body.appendChild(err);
 setTimeout(function(){err.remove()},3000)}
 });
