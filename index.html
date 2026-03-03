@@ -423,7 +423,7 @@ body{display:flex;flex-direction:column}
 <span style="font-size:13px;font-weight:700;color:var(--lav3)">نبذة عن نُخبة العقول</span>
 </div>
 </div>
-<div id="onlineCountBadge" onclick="if(AUTH.email===OWNER_EMAIL)showScreen('owner')" style="display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);padding:6px 16px;border-radius:20px;cursor:pointer;margin:0 auto 8px;width:fit-content"><div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite"></div><span style="font-size:11px;font-weight:700;color:var(--green)">المتواجدون الآن</span><span id="onlineNum" style="font-size:12px;font-weight:800;color:var(--green)">0</span></div>
+<div id="onlineCountBadge" onclick="if(AUTH.email===OWNER_EMAIL)showScreen('owner')" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:4px 12px;border-radius:16px;cursor:pointer;margin:0 auto 8px;width:fit-content;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.12)"><div style="width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite"></div><span id="onlineNum" style="font-size:12px;font-weight:800;color:var(--green)">0</span></div>
 <div style="text-align:center;padding:0 0 20px;color:var(--txt3);opacity:.3;font-size:10px">v11.0</div>
 
 <div id="aboutModal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:20px" onclick="if(event.target===this)this.style.display='none'">
@@ -554,7 +554,7 @@ body{display:flex;flex-direction:column}
 <div id="premium" class="screen">
 <div class="header-bar">
   <div class="icon-btn" onclick="showScreen('home')">→</div>
-  <div style="flex:1;text-align:center;font-weight:800">👑 النسخة المميزة</div>
+  <div style="flex:1;text-align:center;font-weight:800">نُخبة العقول</div>
 </div>
 <div style="flex:1;overflow-y:auto;padding:16px" id="premiumBody"></div>
 </div>
@@ -5661,27 +5661,7 @@ date:Date.now()
 })}}
 
 /* === Premium / Revenue Model === */
-function renderPremium(){
-document.getElementById('premiumBody').innerHTML='<div style="text-align:center;margin-bottom:20px"><div style="font-size:64px">👑</div><div class="grad-text" style="font-size:24px;font-weight:900">النسخة المميزة</div><div style="color:var(--txt3);font-size:13px;margin-top:4px">افتح كل الميزات وادعم التطوير</div></div>'
-
-+'<div class="c" style="margin-bottom:12px;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05)">'
-+'<div style="text-align:center"><div style="color:var(--gold);font-size:18px;font-weight:900">🆓 النسخة المجانية</div><div style="color:var(--txt3);font-size:11px;margin-top:4px">الخطة الحالية</div></div>'
-+'<div style="margin-top:12px;font-size:13px;color:var(--txt2);line-height:2">'
-+'✅ 6 مواد دراسية<br>✅ 14,500+ سؤال<br>✅ مسابقات أونلاين<br>✅ لوحة المتصدرين<br>❌ تقارير مفصلة للمعلم<br>❌ أسئلة مخصصة<br>❌ بدون إعلانات<br>❌ شهادات إنجاز</div></div>'
-
-+'<div class="c" style="margin-bottom:12px;border-color:rgba(212,168,74,.4);background:rgba(212,168,74,.06)">'
-+'<div style="text-align:center"><div style="color:var(--lav3);font-size:18px;font-weight:900">⭐ الاشتراك الشخصي</div><div style="margin-top:4px"><span style="font-size:28px;font-weight:900;color:var(--gold)">9.99</span><span style="color:var(--txt3);font-size:13px"> ريال/شهر</span></div></div>'
-+'<div style="margin-top:12px;font-size:13px;color:var(--txt2);line-height:2">'
-+'✅ كل ميزات المجانية<br>✅ تقارير أداء مفصلة<br>✅ أسئلة إضافية متقدمة<br>✅ شهادات إنجاز PDF<br>✅ بدون إعلانات<br>✅ ثيمات حصرية</div>'
-+'<button class="btn btn-primary" style="margin-top:12px" onclick="alert(\'قريباً! جاري تطوير نظام الدفع\')">اشترك الآن ⭐</button></div>'
-
-+'<div class="c" style="margin-bottom:12px;border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.08)">'
-+'<div style="text-align:center"><div style="color:var(--green);font-size:18px;font-weight:900">🏫 اشتراك المدرسة</div><div style="margin-top:4px"><span style="font-size:28px;font-weight:900;color:var(--gold)">100</span><span style="color:var(--txt3);font-size:13px"> ريال/شهر</span></div></div>'
-+'<div style="margin-top:12px;font-size:13px;color:var(--txt2);line-height:2">'
-+'✅ كل ميزات الشخصي<br>✅ لوحة تحكم المعلم<br>✅ تتبع أداء كل طالب<br>✅ إنشاء اختبارات مخصصة<br>✅ تقارير شهرية لولي الأمر<br>✅ حتى 500 طالب<br>✅ دعم فني مباشر</div>'
-+'<button class="btn" style="background:rgba(74,222,128,.15);border:1px solid var(--green);color:var(--green);margin-top:12px" onclick="alert(\'تواصل معنا: nukhbat@email.com\')">تواصل معنا 🏫</button></div>'
-
-+'<div class="c" style="text-align:center"><div style="color:var(--txt3);font-size:11px;line-height:1.8">💡 النسخة المجانية كافية للاستخدام الشخصي<br>الاشتراك يدعم تطوير المحتوى وإضافة مواد جديدة</div></div>'}
+function renderPremium(){document.getElementById("premiumBody").innerHTML=""}
 
 /* === Init Auth on load === */
 
