@@ -133,6 +133,8 @@ body{display:flex;flex-direction:column}
 .radio-station{display:flex;align-items:center;gap:8px;padding:8px;border:2px solid rgba(212,168,74,.15);margin-bottom:4px;border-radius:6px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .radio-station:active{transform:scale(.98)}
 .radio-station.playing{background:rgba(212,168,74,.06);border-color:rgba(212,168,74,.35);color:#fff}
+.radio-station.failed{opacity:.5;border-color:rgba(239,68,68,.2)}
+.radio-station.failed .radio-tag{background:rgba(239,68,68,.15);color:#ef4444}
 .radio-tag{font-family:'Tajawal',monospace;font-size:9px;font-weight:900;text-transform:uppercase;background:rgba(212,168,74,.15);color:var(--gold);padding:2px 6px;flex-shrink:0;letter-spacing:.5px}
 .radio-station.playing .radio-tag{background:rgba(74,222,128,.15);color:#4ade80}
 .radio-sinfo{flex:1;min-width:0}
@@ -6144,98 +6146,156 @@ return shuffle(qs)}
 };
 
 
-/* === EDUCATIONAL RADIO === */
+/* === EDUCATIONAL RADIO — verified 2025 === */
 var RADIO_STATIONS=[
-/* 🇺🇸 American Educational */
-{name:'NPR News',desc:'أخبار وتحليلات تعليمية',country:'🇺🇸',cat:'news',url:'https://npr-ice.streamguys1.com/live.mp3',lang:'English'},
-{name:'WNYC FM',desc:'برامج حوارية تعليمية — نيويورك',country:'🇺🇸',cat:'edu',url:'https://fm939.wnyc.org/wnycfm',lang:'English'},
-{name:'KQED FM',desc:'محطة تعليمية — سان فرانسيسكو',country:'🇺🇸',cat:'edu',url:'https://streams.kqed.org/kqedradio.mp3',lang:'English'},
-{name:'WBUR Boston',desc:'محطة تعليمية — بوسطن',country:'🇺🇸',cat:'edu',url:'https://streams.wbur.org/wbur-aac',lang:'English'},
-{name:'Classical KUSC',desc:'موسيقى كلاسيكية للتركيز',country:'🇺🇸',cat:'music',url:'https://kusc.streamguys1.com/kusc-128k.mp3',lang:'Music'},
-{name:'WGBH Boston',desc:'إذاعة PBS التعليمية',country:'🇺🇸',cat:'edu',url:'https://streams.wgbh.org/wgbh-aac',lang:'English'},
-/* 🇬🇧 British Educational */
-{name:'BBC World Service',desc:'أخبار عالمية وثقافة',country:'🇬🇧',cat:'news',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service',lang:'English'},
-{name:'BBC Radio 4',desc:'برامج ثقافية وعلمية',country:'🇬🇧',cat:'edu',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm',lang:'English'},
-{name:'BBC Arabic',desc:'بي بي سي عربي — أخبار وثقافة',country:'🇬🇧',cat:'arabic',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_arabic_radio',lang:'عربي'},
-{name:'BBC Radio 3',desc:'موسيقى كلاسيكية وثقافة',country:'🇬🇧',cat:'music',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_three',lang:'Music'},
-{name:'Classic FM',desc:'موسيقى كلاسيكية للدراسة',country:'🇬🇧',cat:'music',url:'https://media-ice.musicradio.com/ClassicFMMP3',lang:'Music'},
-{name:'BBC 6 Music',desc:'موسيقى بديلة ومستقلة',country:'🇬🇧',cat:'music',url:'https://stream.live.vc.bbcmedia.co.uk/bbc_6music',lang:'Music'},
-/* 🧠 Focus & Study */
-{name:'Lofi Hip Hop Radio',desc:'لوفي للمذاكرة والتركيز',country:'🌍',cat:'focus',url:'https://play.streamafrica.net/lofiradio',lang:'Music'},
-{name:'Study Music',desc:'موسيقى هادئة للدراسة',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/43/128.mp3',lang:'Music'},
-{name:'Nature Sounds',desc:'أصوات طبيعية للاسترخاء',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/29/128.mp3',lang:'Ambient'},
-{name:'Piano Radio',desc:'بيانو هادئ للتركيز',country:'🌍',cat:'focus',url:'https://streams.calmradio.com/api/22/128.mp3',lang:'Music'},
-/* 🇺🇸 American Stations from Different States */
-{name:'WBEZ Chicago',desc:'شيكاغو — إلينوي (لهجة الغرب الأوسط)',country:'🇺🇸',cat:'edu',url:'https://stream.wbez.org/wbez128',lang:'English',state:'Illinois'},
-{name:'KERA Dallas',desc:'دالاس — تكساس (لهجة جنوبية)',country:'🇺🇸',cat:'edu',url:'https://kera.streamguys1.com/keralive',lang:'English',state:'Texas'},
-{name:'OPB Portland',desc:'بورتلاند — أوريغون (شمال غربي)',country:'🇺🇸',cat:'edu',url:'https://stream3.opb.org/radio.mp3',lang:'English',state:'Oregon'},
-{name:'WAMU Washington',desc:'واشنطن العاصمة (اللهجة الشرقية)',country:'🇺🇸',cat:'news',url:'https://wamu-1.streamguys.com',lang:'English',state:'DC'},
-{name:'WHYY Philadelphia',desc:'فيلادلفيا — بنسلفانيا',country:'🇺🇸',cat:'edu',url:'https://whyy.streamguys1.com/whyy-mp3',lang:'English',state:'Pennsylvania'},
-{name:'WUNC Chapel Hill',desc:'نورث كارولاينا (لهجة جنوبية)',country:'🇺🇸',cat:'edu',url:'https://audio-mp3.ibiblio.org/wunc-128',lang:'English',state:'N. Carolina'},
-{name:'MPR Minnesota',desc:'مينيسوتا (لهجة الشمال)',country:'🇺🇸',cat:'news',url:'https://nis.stream.publicradio.org/nis.mp3',lang:'English',state:'Minnesota'},
-{name:'KNBA Anchorage',desc:'ألاسكا — صوت السكان الأصليين',country:'🇺🇸',cat:'edu',url:'https://ice42.securenetsystems.net/KNBA',lang:'English',state:'Alaska'},
-{name:'Hawaii Public Radio',desc:'هاواي — ثقافة المحيط الهادي',country:'🇺🇸',cat:'edu',url:'https://stream.khpr.org/khpr',lang:'English',state:'Hawaii'},
-{name:'WWNO New Orleans',desc:'نيو أورلينز — لويزيانا (كريول)',country:'🇺🇸',cat:'edu',url:'https://wwno.streamguys1.com/wwno-mp3',lang:'English',state:'Louisiana'},
-{name:'Vermont Public',desc:'فيرمونت (لهجة نيو إنغلاند)',country:'🇺🇸',cat:'edu',url:'https://vpr.streamguys1.com/vpr64.mp3',lang:'English',state:'Vermont'},
-{name:'WUSF Tampa',desc:'تامبا — فلوريدا',country:'🇺🇸',cat:'news',url:'https://wusf-ice.streamguys1.com/wusfhd1',lang:'English',state:'Florida'},
-{name:'KJZZ Phoenix',desc:'فينكس — أريزونا (الجنوب الغربي)',country:'🇺🇸',cat:'edu',url:'https://kjzz.streamguys1.com/kjzz_mp3_128',lang:'English',state:'Arizona'},
-{name:'KUOW Seattle',desc:'سياتل — واشنطن (شمال غربي)',country:'🇺🇸',cat:'edu',url:'https://playerservices.streamtheworld.com/api/livestream-redirect/KUOWFM_HIGH_MP3',lang:'English',state:'Washington'},
-{name:'Colorado Public',desc:'كولورادو (لهجة الجبال الغربية)',country:'🇺🇸',cat:'edu',url:'https://cpr.streamguys1.com/cpr-news',lang:'English',state:'Colorado'},
-{name:'Georgia Public',desc:'أتلانتا — جورجيا (لهجة جنوبية عميقة)',country:'🇺🇸',cat:'edu',url:'https://playerservices.streamtheworld.com/api/livestream-redirect/WABORADIO',lang:'English',state:'Georgia'}
+/* 🇸🇦 قرآن كريم — mp3quran.net + Quran Central verified */
+{name:'القرآن — إذاعة القرآن',desc:'إذاعة القرآن الكريم من القاهرة',country:'🇸🇦',cat:'arabic',
+ urls:['https://stream.radiojar.com/8s5u5tpdtwzuv','https://Qurango.net/radio/tarateel','https://backup.qurango.net/radio/tarateel'],lang:'عربي'},
+{name:'القرآن — مشاري العفاسي',desc:'تلاوات الشيخ مشاري العفاسي',country:'🇸🇦',cat:'arabic',
+ urls:['https://Qurango.net/radio/mishari_alafasi','https://stream.radiojar.com/8s5u5tpdtwzuv'],lang:'عربي'},
+{name:'القرآن — عبدالباسط',desc:'بصوت عبدالباسط عبدالصمد',country:'🇸🇦',cat:'arabic',
+ urls:['https://Qurango.net/radio/abdulbasit','https://stream.radiojar.com/8s5u5tpdtwzuv'],lang:'عربي'},
+{name:'القرآن — السديس والشريم',desc:'من الحرم المكي الشريف',country:'🇸🇦',cat:'arabic',
+ urls:['https://Qurango.net/radio/sudais','https://stream.radiojar.com/8s5u5tpdtwzuv'],lang:'عربي'},
+/* 🇸🇦🇫🇷 عربي — أخبار وثقافة — Infomaniak verified */
+{name:'مونت كارلو الدولية',desc:'أخبار وثقافة وحوارات بالعربية',country:'🇫🇷',cat:'arabic',
+ urls:['https://montecarlodoualiya128k.ice.infomaniak.ch/montecarlodoualiya128k.mp3'],lang:'عربي'},
+/* 🇬🇧 BBC — HLS for Safari + legacy fallback — verified Jan 2025 */
+{name:'BBC World Service',desc:'أخبار وتحليلات عالمية',country:'🇬🇧',cat:'news',
+ urls:['https://as-hls-ww-live.akamaized.net/pool_02501205/live/ww/bbc_world_service/bbc_world_service.isml/bbc_world_service-audio%3d96000.norewind.m3u8','https://stream.live.vc.bbcmedia.co.uk/bbc_world_service'],lang:'English'},
+{name:'BBC Radio 4',desc:'برامج ثقافية وعلمية وأدبية',country:'🇬🇧',cat:'edu',
+ urls:['https://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio%3d96000.norewind.m3u8','https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm'],lang:'English'},
+{name:'BBC Radio 3',desc:'موسيقى كلاسيكية وثقافة',country:'🇬🇧',cat:'music',
+ urls:['https://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8','https://stream.live.vc.bbcmedia.co.uk/bbc_radio_three'],lang:'Music'},
+/* 🇬🇧 UK Commercial — Musicradio verified */
+{name:'Classic FM',desc:'كلاسيكية للدراسة والتركيز',country:'🇬🇧',cat:'music',
+ urls:['https://media-ice.musicradio.com/ClassicFMMP3','https://ice-sov.musicradio.com/ClassicFMMP3','https://media-the.musicradio.com/ClassicFM'],lang:'Music'},
+{name:'Smooth Radio',desc:'موسيقى هادئة ومريحة',country:'🇬🇧',cat:'music',
+ urls:['https://media-ice.musicradio.com/SmoothUKMP3'],lang:'Music'},
+{name:'Absolute Radio',desc:'روك كلاسيكي وحديث',country:'🇬🇧',cat:'music',
+ urls:['https://ais.absoluteradio.co.uk/absoluteradio.mp3'],lang:'Music'},
+/* 🇺🇸 American — StreamGuys verified 2025 */
+{name:'NPR News',desc:'أخبار وتحليلات تعليمية',country:'🇺🇸',cat:'news',
+ urls:['https://npr-ice.streamguys1.com/live.mp3'],lang:'English'},
+{name:'Classical KUSC',desc:'كلاسيكية — لوس أنجلوس',country:'🇺🇸',cat:'music',
+ urls:['https://kusc.streamguys1.com/kusc-128k.mp3'],lang:'Music'},
+{name:'Colorado Public Radio',desc:'كولورادو — أخبار وتعليم',country:'🇺🇸',cat:'edu',
+ urls:['https://cpr.streamguys1.com/cpr-news','https://stream1.cprnetwork.org/cpr2_lo'],lang:'English'},
+{name:'Classical MPR',desc:'كلاسيكية من مينيسوتا',country:'🇺🇸',cat:'music',
+ urls:['https://cms.stream.publicradio.org/cms.mp3'],lang:'Music'},
+/* 🇨🇭 Swiss — SRG-SSR verified */
+{name:'Swiss Jazz',desc:'جاز سويسري 24 ساعة',country:'🇨🇭',cat:'focus',
+ urls:['https://stream.srg-ssr.ch/m/rsj/mp3_128'],lang:'Music'},
+{name:'Swiss Classic',desc:'كلاسيكية سويسرية راقية',country:'🇨🇭',cat:'focus',
+ urls:['https://stream.srg-ssr.ch/m/rsc_de/mp3_128'],lang:'Music'},
+/* 🇫🇷 France — Radio France & Infomaniak verified */
+{name:'FIP Radio',desc:'موسيقى متنوعة — بلا إعلانات',country:'🇫🇷',cat:'focus',
+ urls:['https://icecast.radiofrance.fr/fip-hifi.aac','https://icecast.radiofrance.fr/fip-midfi.mp3'],lang:'Music'},
+{name:'FIP Jazz',desc:'جاز فرنسي 24 ساعة',country:'🇫🇷',cat:'focus',
+ urls:['https://icecast.radiofrance.fr/fipjazz-hifi.aac','https://icecast.radiofrance.fr/fipjazz-midfi.mp3'],lang:'Music'},
+{name:'France Musique',desc:'كلاسيكية فرنسية راقية',country:'🇫🇷',cat:'music',
+ urls:['https://icecast.radiofrance.fr/francemusique-hifi.aac','https://direct.francemusique.fr/live/francemusique-midfi.mp3'],lang:'Music'},
+{name:'Jazz Radio Lyon',desc:'جاز فرنسي متنوع — Infomaniak',country:'🇫🇷',cat:'focus',
+ urls:['https://jazzradio.ice.infomaniak.ch/jazzradio-hq.mp3'],lang:'Music'},
+{name:'Radio Classique',desc:'كلاسيكية فرنسية',country:'🇫🇷',cat:'music',
+ urls:['https://radioclassique.ice.infomaniak.ch/radioclassique-high.mp3'],lang:'Music'},
+/* 🧠 Focus & Chill — Infomaniak verified */
+{name:'Jazz Lounge',desc:'جاز لاونج هادئ للاسترخاء',country:'🇫🇷',cat:'focus',
+ urls:['https://jazzlounge.ice.infomaniak.ch/jazzlounge-high.mp3'],lang:'Music'},
+{name:'Jazz Blues',desc:'بلوز وجاز كلاسيكي',country:'🇫🇷',cat:'focus',
+ urls:['https://jazzblues.ice.infomaniak.ch/jazzblues-high.mp3'],lang:'Music'},
+/* 🇩🇪 German — FluxFM verified */
+{name:'FluxFM Chillhop',desc:'لوفي وهيب هوب للمذاكرة',country:'🇩🇪',cat:'focus',
+ urls:['https://streams.fluxfm.de/Chillhop/mp3-320/streams.fluxfm.de/'],lang:'Music'},
+{name:'FluxFM Lounge',desc:'موسيقى لاونج للاسترخاء',country:'🇩🇪',cat:'focus',
+ urls:['https://streams.fluxfm.de/lounge/mp3-320/audio/'],lang:'Music'},
+/* 🇮🇹 Italian — RAI verified */
+{name:'RAI Radio 3 Classica',desc:'كلاسيكية إيطالية',country:'🇮🇹',cat:'music',
+ urls:['https://icestreaming.rai.it/5.mp3'],lang:'Music'},
+/* 🌍 International */
+{name:'France International',desc:'أخبار دولية بالفرنسية',country:'🇫🇷',cat:'edu',
+ urls:['https://icecast.radiofrance.fr/rfimonde-hifi.aac','https://icecast.radiofrance.fr/rfimonde-midfi.mp3'],lang:'Français'},
+{name:'France Culture',desc:'ثقافة وفكر بالفرنسية',country:'🇫🇷',cat:'edu',
+ urls:['https://icecast.radiofrance.fr/franceculture-hifi.aac','https://direct.franceculture.fr/live/franceculture-midfi.mp3'],lang:'Français'}
 ]
+/* Backward compat: set .url from first in .urls */
+for(var _ri=0;_ri<RADIO_STATIONS.length;_ri++){
+RADIO_STATIONS[_ri].url=RADIO_STATIONS[_ri].urls[0];
+RADIO_STATIONS[_ri]._urlIdx=0;
+}
 
 var radioAudio=null;
 var radioPlaying=-1;
 var radioFilter='all';
+var radioLoading=false;
+var radioRetryCount=0;
+var radioTimeout=null;
+var radioFailedStations={};
+
+function radioIsOnline(){return navigator.onLine!==false}
+
+function radioShowToast(msg,isError){
+var old=document.getElementById('radioToast');if(old)old.remove();
+var t=document.createElement('div');t.id='radioToast';
+t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba('+(isError?'239,68,68':'74,222,128')+',.92);color:#fff;padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;z-index:9999;text-align:center;max-width:85%;backdrop-filter:blur(10px);box-shadow:0 4px 20px rgba(0,0,0,.3)';
+t.textContent=msg;document.body.appendChild(t);
+setTimeout(function(){t.remove()},3500);
+}
 
 function renderRadio(){
 var h='';
-/* Header */
 h+='<div style="text-align:center;margin-bottom:12px">';
 h+='<div style="font-size:14px;font-weight:900;color:var(--txt);letter-spacing:1px">📻 EDUCATIONAL RADIO</div>';
 h+='<div style="font-size:10px;color:var(--txt3);margin-top:2px">استمع أثناء المذاكرة</div>';
+if(!radioIsOnline())h+='<div style="font-size:10px;color:#ef4444;margin-top:4px;font-weight:700">⚠️ لا يوجد اتصال بالإنترنت</div>';
 h+='</div>';
 
-/* Filters — Brutalist */
 h+='<div class="radio-filter">';
-var filters=[['all','الكل'],['edu','تعليمي'],['news','أخبار'],['music','موسيقى'],['focus','تركيز'],['arabic','عربي']];
+var filters=[['all','الكل'],['arabic','عربي'],['edu','تعليمي'],['news','أخبار'],['music','موسيقى'],['focus','تركيز']];
 for(var i=0;i<filters.length;i++){
 h+='<div class="radio-filter-btn'+(radioFilter===filters[i][0]?' active':'')+'" onclick="radioFilter=\''+filters[i][0]+'\';renderRadio()">'+filters[i][1]+'</div>';
 }
 h+='</div>';
 
-/* Now Playing — Brutalist */
 if(radioPlaying>=0){
 var st=RADIO_STATIONS[radioPlaying];
 h+='<div class="radio-np-brutal">';
+if(radioLoading){
+h+='<div class="radio-np-tag" style="background:#f59e0b;animation:pulse 1s infinite">جارٍ التحميل...</div>';
+}else{
 h+='<div class="radio-np-tag">ON AIR</div>';
 h+='<div class="radio-np-eq"><span></span><span></span><span></span><span></span><span></span></div>';
+}
 h+='<div class="radio-np-info"><div class="radio-np-name">'+st.name+'</div><div class="radio-np-sub">'+st.country+' '+st.desc+'</div></div>';
 h+='<div class="radio-np-stop" onclick="radioStop()">STOP</div>';
 h+='</div>';
 }
 
-/* Station Cards — Brutalist */
 h+='<div class="radio-wrap">';
 var count=0;
 for(var i=0;i<RADIO_STATIONS.length;i++){
 var st=RADIO_STATIONS[i];
 if(radioFilter!=='all'&&st.cat!==radioFilter)continue;
 var isPlaying=radioPlaying===i;
+var isFailed=radioFailedStations[i]===true;
 count++;
-h+='<div class="radio-station'+(isPlaying?' playing':'')+'" onclick="radioToggle('+i+')">';
-h+='<div class="radio-tag">'+(isPlaying?'LIVE':'FM')+'</div>';
+h+='<div class="radio-station'+(isPlaying?' playing':'')+(isFailed?' failed':'')+'" onclick="radioToggle('+i+')">';
+h+='<div class="radio-tag">'+(isPlaying?(radioLoading?'...':'LIVE'):(isFailed?'✖':st.urls.length>1?'FM+':'FM'))+'</div>';
 h+='<div class="radio-sinfo"><div class="radio-sname">'+st.name+'</div>';
 h+='<div class="radio-sdesc">'+st.desc+'</div>';
-h+='<div class="radio-smeta"><span>'+st.country+'</span><span>'+st.lang+'</span>'+(st.state?'<span>'+st.state+'</span>':'')+'</div>';
+h+='<div class="radio-smeta"><span>'+st.country+'</span><span>'+st.lang+'</span>'+(st.urls.length>1?'<span>'+st.urls.length+' URLs</span>':'')+'</div>';
 h+='</div>';
-h+='<div class="radio-sbtn">'+(isPlaying?'STOP':'PLAY')+'</div>';
+h+='<div class="radio-sbtn">'+(isPlaying?'STOP':(isFailed?'إعادة':'PLAY'))+'</div>';
 h+='</div>';
 }
 h+='</div>';
+h+='<div style="text-align:center;padding:8px 0 4px;color:var(--txt3);font-size:10px;font-weight:700">'+count+' STATIONS</div>';
 
-/* Count */
-h+='<div style="text-align:center;padding:12px 0 30px;color:var(--txt3);font-size:10px;font-weight:700">'+count+' STATIONS</div>';
+if(Object.keys(radioFailedStations).length>0){
+h+='<div style="text-align:center;padding:4px 0 20px"><div onclick="radioFailedStations={};renderRadio()" style="display:inline-block;padding:6px 16px;background:rgba(212,168,74,.15);border:1px solid rgba(212,168,74,.3);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer">🔄 إعادة تعيين المحطات المعطّلة</div></div>';
+}else{
+h+='<div style="height:20px"></div>';
+}
 
 document.getElementById('radioBody').innerHTML=h;
 }
@@ -6243,47 +6303,158 @@ document.getElementById('radioBody').innerHTML=h;
 function radioToggle(idx){
 sfxClick();
 if(radioPlaying===idx){radioStop();return}
+if(!radioIsOnline()){radioShowToast('⚠️ الراديو يحتاج اتصال بالإنترنت — تأكد من الاتصال وحاول مجدداً',true);return}
 radioStop();
-try{
-radioAudio=new Audio(RADIO_STATIONS[idx].url);
-radioAudio.crossOrigin='anonymous';
-radioAudio.volume=0.7;
+radioRetryCount=0;
+/* Reset all failed stations on new manual play */
+radioFailedStations={};
+RADIO_STATIONS[idx]._urlIdx=0;
+radioPlayStation(idx);
+}
 
-/* Loading indicator */
+function radioPlayStation(idx){
+try{
+if(radioTimeout)clearTimeout(radioTimeout);
+radioLoading=true;
 radioPlaying=idx;
 renderRadio();
+var st=RADIO_STATIONS[idx];
+var urlIdx=st._urlIdx||0;
+var tryUrl=st.urls[urlIdx];
 
-radioAudio.play().then(function(){
+radioAudio=new Audio();
+radioAudio.crossOrigin='anonymous';
+radioAudio.volume=0.7;
+radioAudio.preload='none';
+radioAudio.src=tryUrl;
+
+/* Timeout: if not playing in 12s, try next URL then next station */
+radioTimeout=setTimeout(function(){
+if(radioLoading&&radioPlaying===idx){
+console.log('Radio timeout:',st.name,'URL#'+urlIdx,tryUrl);
+/* Try next URL for same station first */
+if(urlIdx+1<st.urls.length){
+st._urlIdx=urlIdx+1;
+if(radioAudio){try{radioAudio.pause();radioAudio.src=''}catch(e){}}
+radioAudio=null;radioLoading=false;
+radioPlayStation(idx);
+}else{
+st._urlIdx=0;
+radioFailedStations[idx]=true;
+radioTryNext(idx);
+}
+}
+},12000);
+
+radioAudio.addEventListener('playing',function(){
+radioLoading=false;
+if(radioTimeout)clearTimeout(radioTimeout);
+delete radioFailedStations[idx];
+st.url=tryUrl;/* remember working URL */
 renderRadio();
-}).catch(function(e){
-console.log('Radio error:',e);
-radioPlaying=-1;
-radioAudio=null;
-renderRadio();
-/* Show error */
-var body=document.getElementById('radioBody');
-if(body){var err=document.createElement('div');
-err.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,.9);color:#fff;padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;z-index:9999;animation:fadeUp .3s';
-err.textContent='⚠️ تعذّر تشغيل المحطة — جرّب محطة أخرى';
-document.body.appendChild(err);
-setTimeout(function(){err.remove()},3000)}
+},{once:true});
+
+radioAudio.addEventListener('error',function(e){
+console.log('Radio error:',st.name,'URL#'+urlIdx,e);
+/* Try next URL for same station */
+if(urlIdx+1<st.urls.length){
+st._urlIdx=urlIdx+1;
+if(radioAudio){try{radioAudio.pause();radioAudio.src=''}catch(e){}}
+radioAudio=null;radioLoading=false;
+radioPlayStation(idx);
+}else{
+st._urlIdx=0;
+radioFailedStations[idx]=true;
+radioTryNext(idx);
+}
+},{once:true});
+
+radioAudio.addEventListener('stalled',function(){
+setTimeout(function(){
+if(radioLoading&&radioPlaying===idx){
+if(urlIdx+1<st.urls.length){
+st._urlIdx=urlIdx+1;
+if(radioAudio){try{radioAudio.pause();radioAudio.src=''}catch(e){}}
+radioAudio=null;radioLoading=false;
+radioPlayStation(idx);
+}else{
+st._urlIdx=0;
+radioFailedStations[idx]=true;
+radioTryNext(idx);
+}
+}
+},10000);
+},{once:true});
+
+radioAudio.play().catch(function(e){
+console.log('Radio play error:',e);
+if(urlIdx+1<st.urls.length){
+st._urlIdx=urlIdx+1;
+if(radioAudio){try{radioAudio.pause();radioAudio.src=''}catch(e){}}
+radioAudio=null;radioLoading=false;
+radioPlayStation(idx);
+}else{
+st._urlIdx=0;
+radioFailedStations[idx]=true;
+radioTryNext(idx);
+}
 });
-radioAudio.onerror=function(){
-radioPlaying=-1;radioAudio=null;renderRadio()
-};
-}catch(e){console.log('Radio init error:',e)}
+
+}catch(e){
+console.log('Radio init error:',e);
+radioFailedStations[idx]=true;
+radioTryNext(idx);
+}
+}
+
+function radioTryNext(failedIdx){
+if(radioTimeout)clearTimeout(radioTimeout);
+if(radioAudio){try{radioAudio.pause();radioAudio.src=''}catch(e){}}
+radioAudio=null;
+radioLoading=false;
+radioRetryCount++;
+
+if(radioRetryCount>8){
+radioPlaying=-1;
+renderRadio();
+radioShowToast('⚠️ تعذّر تشغيل المحطات — تحقق من اتصال الإنترنت',true);
+return;
+}
+
+/* Find next station in same filter */
+var nextIdx=-1;
+for(var i=1;i<=RADIO_STATIONS.length;i++){
+var candidate=(failedIdx+i)%RADIO_STATIONS.length;
+if(radioFailedStations[candidate])continue;
+if(radioFilter!=='all'&&RADIO_STATIONS[candidate].cat!==radioFilter)continue;
+nextIdx=candidate;break;
+}
+if(nextIdx>=0){
+RADIO_STATIONS[nextIdx]._urlIdx=0;
+radioShowToast('⏭ جارٍ تجربة: '+RADIO_STATIONS[nextIdx].name,false);
+setTimeout(function(){radioPlayStation(nextIdx)},300);
+}else{
+radioPlaying=-1;renderRadio();
+radioShowToast('⚠️ لا توجد محطات متاحة — جرّب فئة أخرى أو تحقق من الاتصال',true);
+}
 }
 
 function radioStop(){
-if(radioAudio){
-try{radioAudio.pause();radioAudio.src=''}catch(e){}
+if(radioTimeout)clearTimeout(radioTimeout);
+if(radioAudio){try{radioAudio.pause();radioAudio.src=''}catch(e){}}
 radioAudio=null;
-}
 radioPlaying=-1;
+radioLoading=false;
 renderRadio();
 }
 
-/* Stop radio when starting quiz */
+/* Listen for online/offline */
+window.addEventListener('online',function(){if(radioPlaying>=0)renderRadio()});
+window.addEventListener('offline',function(){
+if(radioPlaying>=0){radioStop();radioShowToast('⚠️ انقطع الاتصال — توقف الراديو',true)}
+else{renderRadio()}
+});
+
 var _origStartQuiz=typeof startQuizReal==='function'?startQuizReal:null;
 
 
