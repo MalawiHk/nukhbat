@@ -196,10 +196,10 @@ body{display:flex;flex-direction:column}
 .timer-bar{height:4px;background:var(--card2);border-radius:2px;overflow:hidden;width:100%;margin-top:3px}
 .timer-fill{height:100%;border-radius:2px;-webkit-transition:width 1s linear;transition:width 1s linear}
 
-.opt{background:rgba(30,30,46,.85);border:2px solid rgba(212,168,74,.15);border-radius:var(--rSm);padding:15px;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;margin-bottom:10px;-webkit-tap-highlight-color:transparent}
+.opt{background:rgba(30,30,46,.85);border:2px solid rgba(212,168,74,.15);border-radius:var(--rSm);padding:15px;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;display:-webkit-flex;display:flex;-webkit-flex-direction:row-reverse;flex-direction:row-reverse;-webkit-align-items:center;align-items:center;gap:10px;margin-bottom:10px;direction:rtl;-webkit-tap-highlight-color:transparent}
 .opt:active{-webkit-transform:scale(.98);transform:scale(.98);box-shadow:0 0 14px rgba(212,168,74,.2);border-color:rgba(212,168,74,.3)}
 .opt-label{width:32px;height:32px;border-radius:50%;background:rgba(212,168,74,.1);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-weight:800;font-size:14px;color:#e8cc7a;-webkit-transition:all .25s;transition:all .25s;-webkit-flex-shrink:0;flex-shrink:0}
-.opt-text{font-size:16px;font-weight:600;-webkit-flex:1;flex:1;line-height:1.7;color:#e8eeff}
+.opt-text{font-size:16px;font-weight:600;-webkit-flex:1;flex:1;line-height:1.7;color:#e8eeff;text-align:right;direction:rtl}
 .opt-icon{font-size:20px;font-weight:900;opacity:0;-webkit-transition:opacity .25s;transition:opacity .25s}
 .opt.correct{border-color:var(--green);background:rgba(74,222,128,.15)}
 .opt.correct .opt-label{background:var(--green);color:#fff}
@@ -255,7 +255,7 @@ body{display:flex;flex-direction:column}
 .lb-avatar{width:32px;height:32px;border-radius:50%;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-weight:900;font-size:14px}
 .lb-info{-webkit-flex:1;flex:1}
 
-.hint-box{background:rgba(74,222,128,.06);border:1.5px solid #86efac;border-radius:var(--rSm);padding:16px;margin-top:10px}
+.hint-box{background:rgba(74,222,128,.06);border:1.5px solid #86efac;border-radius:var(--rSm);padding:16px;margin-top:10px;direction:rtl;text-align:right}
 .hint-title{font-size:14px;font-weight:800;color:#166534;margin-bottom:6px}
 .feedback{border-radius:var(--radius);padding:16px;text-align:center;-webkit-animation:fadeUp .3s ease-out;animation:fadeUp .3s ease-out}
 .feedback.correct{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2)}
@@ -582,7 +582,7 @@ function vib(ms){if(S.vibrate&&navigator.vibrate)navigator.vibrate(ms||30)}
 
 function spawnConfetti(n){if(!S.fx)return;var colors=['#d4a84a','#e8cc7a','#4ade80','#f0b429','#f87171','#b8922e','#f5d78e'];for(var i=0;i<(n||60);i++){var el=document.createElement('div');el.className='confetti-piece';var shapes=['■','●','▲','★','◆'];el.textContent=shapes[Math.floor(Math.random()*5)];el.style.cssText='left:'+Math.random()*100+'vw;color:'+colors[i%colors.length]+';font-size:'+(8+Math.random()*8)+'px;animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*.5+'s;opacity:'+(0.6+Math.random()*0.4);document.body.appendChild(el);setTimeout(function(e){return function(){e.remove()}}(el),6000)}}
 
-function showScreen(id){try{if(window.speechSynthesis)window.speechSynthesis.cancel();if(TTS&&TTS.cancelAll)TTS.cancelAll()}catch(e){}var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();if(id==='dashboard')renderDashboard();if(id==='teacher')renderTeacher();if(id==='premium')renderPremium();if(id==='owner')renderOwner();if(id==='radio')renderRadio();sfxClick()}
+function showScreen(id){try{if(window.speechSynthesis)window.speechSynthesis.cancel();if(TTS&&TTS.cancelAll)TTS.cancelAll()}catch(e){}if(typeof newsTVPlaying!=='undefined')newsTVPlaying=-1;var screens=document.querySelectorAll('.screen');for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');document.getElementById(id).classList.add('active');if(id==='home')renderHome();if(id==='leaderboard')renderLeaderboard();if(id==='settings')renderSettings();if(id==='battle')renderBattle();if(id==='dashboard')renderDashboard();if(id==='teacher')renderTeacher();if(id==='premium')renderPremium();if(id==='owner')renderOwner();if(id==='radio')renderRadio();sfxClick()}
 
 var selectedLevel=0;
 function selectAge(lv){selectedLevel=lv;sfxClick();var btns=document.querySelectorAll('.age-btn');for(var i=0;i<btns.length;i++)btns[i].classList.remove('selected');document.getElementById('age'+lv).classList.add('selected');checkReg()}
@@ -6429,6 +6429,16 @@ var radioTimeout=null;
 var radioFailedStations={};
 var eduPlaying=-1;
 
+/* ── Live News TV Channels (YouTube embeds) ── */
+var NEWS_TV=[
+{name:'العربية',nameEn:'Al Arabiya',icon:'🇸🇦',color:'#c0392b',yt:'UCahpxixMCwoANAftn6IxkTg',desc:'أخبار عربية وعالمية 24 ساعة'},
+{name:'الحدث',nameEn:'Al Hadath',icon:'🇸🇦',color:'#8e44ad',yt:'UCa2gSTFcp2UB3QTqdQ_0oEA',desc:'تحليلات وأحداث عاجلة'},
+{name:'ABC News',nameEn:'ABC News Live',icon:'🇺🇸',color:'#2980b9',yt:'UCBi2mrWuNuyYy4gbM6fU18Q',desc:'أخبار أمريكية مباشرة'},
+{name:'NBC News',nameEn:'NBC News NOW',icon:'🇺🇸',color:'#f39c12',yt:'UCeY0bbntWzzVIaj2z3QigXg',desc:'أخبار أمريكية 24 ساعة'},
+{name:'CBS News',nameEn:'CBS News 24/7',icon:'🇺🇸',color:'#1abc9c',yt:'UC8p1vwvWtl6T73JiExfWs1g',desc:'أخبار أمريكية مباشرة'}
+];
+var newsTVPlaying=-1;
+
 function radioIsOnline(){return navigator.onLine!==false}
 
 function radioShowToast(msg,isError){
@@ -6449,7 +6459,7 @@ h+='</div>';
 
 /* ── Filter tabs ── */
 h+='<div class="radio-filter">';
-var filters=[['all','الكل'],['quran','قرآن'],['uk','بريطانيا'],['us','أمريكا'],['learn','تعلّم 🔇']];
+var filters=[['all','الكل'],['tv','📺 أخبار'],['quran','قرآن'],['uk','بريطانيا'],['us','أمريكا'],['learn','تعلّم 🔇']];
 for(var i=0;i<filters.length;i++){
 h+='<div class="radio-filter-btn'+(radioFilter===filters[i][0]?' active':'')+'" onclick="radioFilter=\''+filters[i][0]+'\';renderRadio()">'+filters[i][1]+'</div>';
 }
@@ -6493,8 +6503,31 @@ h+='</div>';
 h+='</div>';
 }
 
+/* ── NEWS TV — YouTube Live ── */
+if(radioFilter==='all'||radioFilter==='tv'){
+h+='<div style="margin:8px 0 4px;padding:4px 8px"><div style="font-size:11px;font-weight:900;color:var(--gold);letter-spacing:.5px">📺 بث أخبار مباشر — سعودي وأمريكي</div></div>';
+h+='<div class="radio-wrap">';
+for(var i=0;i<NEWS_TV.length;i++){
+var ch=NEWS_TV[i];var isP=newsTVPlaying===i;
+h+='<div class="radio-station'+(isP?' playing':'')+'" onclick="newsTVToggle('+i+')" style="'+(isP?'border-color:'+ch.color+'60':'')+'">';
+h+='<div class="radio-tag" style="'+(isP?'background:'+ch.color+'25;color:'+ch.color:'background:rgba(239,68,68,.12);color:#ef4444')+'">'+ch.icon+'</div>';
+h+='<div class="radio-sinfo"><div class="radio-sname" style="'+(isP?'color:'+ch.color:'')+'">📺 '+ch.name+'</div>';
+h+='<div class="radio-sdesc">'+ch.desc+'</div>';
+h+='<div class="radio-smeta"><span>🔴 LIVE</span><span>'+ch.nameEn+'</span></div>';
+h+='</div>';
+h+='<div class="radio-sbtn" style="'+(isP?'border-color:#ef4444;color:#ef4444':'')+'">'+(isP?'إغلاق':'مشاهدة')+'</div>';
+h+='</div>';
+if(isP){
+h+='<div style="margin:-2px 0 6px;border-radius:8px;overflow:hidden;border:1.5px solid '+ch.color+'30;aspect-ratio:16/9">';
+h+='<iframe width="100%" height="100%" src="https://www.youtube.com/embed/live_stream?channel='+ch.yt+'&autoplay=1&mute=0&playsinline=1" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="display:block"></iframe>';
+h+='</div>';
+}
+}
+h+='</div>';
+}
+
 /* ── Live Radio Stations ── */
-if(radioFilter!=='learn'){
+if(radioFilter!=='learn'&&radioFilter!=='tv'){
 var sections=[['quran','🕌 القرآن الكريم — بث مباشر'],['uk','🇬🇧 المحطات البريطانية'],['us','🇺🇸 المحطات الأمريكية']];
 for(var s=0;s<sections.length;s++){
 var sCat=sections[s][0],sLabel=sections[s][1];
@@ -6519,7 +6552,7 @@ h+='</div>';
 }
 }
 
-if(!radioIsOnline()&&radioFilter!=='learn'){
+if(!radioIsOnline()&&radioFilter!=='learn'&&radioFilter!=='tv'){
 h+='<div style="text-align:center;padding:12px;color:#f59e0b;font-size:11px;font-weight:700">⚠️ لا يوجد إنترنت — جرّب قنوات «تعلّم» التي تعمل بدون نت!</div>';
 }
 h+='<div style="height:20px"></div>';
@@ -6532,6 +6565,7 @@ sfxClick();
 if(radioPlaying===idx){radioStop();return}
 if(!radioIsOnline()){radioShowToast('⚠️ البث المباشر يحتاج إنترنت — جرّب قنوات التعلّم!',true);return}
 radioStop();eduStop();/* Kill everything first */
+newsTVPlaying=-1;
 radioRetryCount=0;radioFailedStations={};
 radioPlayStation(idx,0);
 }
@@ -6573,7 +6607,7 @@ var nextIdx=-1;
 for(var i=1;i<=RADIO_STATIONS.length;i++){
 var c=(failedIdx+i)%RADIO_STATIONS.length;
 if(radioFailedStations[c])continue;
-if(radioFilter!=='all'&&radioFilter!=='learn'&&RADIO_STATIONS[c].cat!==radioFilter)continue;
+if(radioFilter!=='all'&&radioFilter!=='learn'&&radioFilter!=='tv'&&RADIO_STATIONS[c].cat!==radioFilter)continue;
 nextIdx=c;break;
 }
 if(nextIdx>=0){radioShowToast('⏭ '+RADIO_STATIONS[nextIdx].name,false);setTimeout(function(){radioPlayStation(nextIdx,0)},300);}
@@ -6590,6 +6624,7 @@ function eduToggle(idx){
 sfxClick();
 if(eduPlaying===idx){eduStop();return}
 eduStop();radioStop();/* Kill everything first */
+newsTVPlaying=-1;
 RadioEngine.killAll();/* ZERO OVERLAP */
 eduPlaying=idx;
 RadioEngine.playTTS(idx);
@@ -6597,6 +6632,16 @@ renderRadio();
 }
 function eduStop(){
 RadioEngine.killAll();eduPlaying=-1;renderRadio();
+}
+
+/* ── NEWS TV Controls ── */
+function newsTVToggle(idx){
+sfxClick();
+if(newsTVPlaying===idx){newsTVPlaying=-1;renderRadio();return}
+/* Kill everything first — zero overlap */
+radioStop();eduStop();RadioEngine.killAll();
+newsTVPlaying=idx;
+renderRadio();
 }
 
 /* Listen for online/offline */
@@ -6790,8 +6835,8 @@ document.getElementById('quizProgress').style.width=((S.qi+1)/S.qs.length*100)+'
 var labels=['أ','ب','ج','د'];
 var isLang=S.subject==='english'||S.subject==='chinese'||S.subject==='arabic';
 var speakBtn=isLang?'<div onclick="TTS.speakQ()" style="display:inline-block;cursor:pointer;background:rgba(212,168,74,.08);border:1px solid rgba(212,168,74,.15);border-radius:50%;width:36px;height:36px;line-height:36px;text-align:center;font-size:18px;margin-bottom:8px;animation:pulse 2s infinite" title="استمع 🔊">🔊</div>':'';
-var h='<div style="display:flex;gap:6px;margin-bottom:12px"><span class="chip chip-lav">'+q.type+'</span><span class="chip chip-gold">'+['','9-11','12-14','15-18'][S.level]+'</span></div>'+speakBtn+'<div style="background:rgba(212,168,74,.08);border:1.5px solid rgba(212,168,74,.3);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(212,168,74,.08)"><div style="font-size:19px;font-weight:800;line-height:2;color:#ffffff;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.3);direction:'+((q.text.match(/[a-zA-Z]/g)||[]).length>(q.text.match(/[\u0600-\u06FF]/g)||[]).length?'ltr':'rtl')+'" id="qText">'+q.text+'</div></div>';
-for(var i=0;i<q.options.length;i++){var spkOpt=isLang?'<div onclick="event.stopPropagation();TTS.speakOpt('+i+')" style="cursor:pointer;font-size:14px;margin-left:4px;opacity:.7" title="استمع">🔈</div>':'';h+='<div class="opt" id="opt'+i+'" onclick="answer('+i+')"><div class="opt-label" id="optL'+i+'">'+labels[i]+'</div><div class="opt-text" style="flex:1;direction:'+((q.options[i].match(/[a-zA-Z]/g)||[]).length>(q.options[i].match(/[\u0600-\u06FF]/g)||[]).length?'ltr;text-align:left':'rtl')+'">'+q.options[i]+'</div>'+spkOpt+'<div class="opt-icon" id="optI'+i+'"></div></div>'}
+var h='<div style="display:flex;gap:6px;margin-bottom:12px"><span class="chip chip-lav">'+q.type+'</span><span class="chip chip-gold">'+['','9-11','12-14','15-18'][S.level]+'</span></div>'+speakBtn+'<div style="background:rgba(212,168,74,.08);border:1.5px solid rgba(212,168,74,.3);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(212,168,74,.08)"><div style="font-size:19px;font-weight:800;line-height:2;color:#ffffff;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.3);direction:rtl" id="qText">'+q.text+'</div></div>';
+for(var i=0;i<q.options.length;i++){var spkOpt=isLang?'<div onclick="event.stopPropagation();TTS.speakOpt('+i+')" style="cursor:pointer;font-size:14px;margin-right:4px;opacity:.7" title="استمع">🔈</div>':'';h+='<div class="opt" id="opt'+i+'" onclick="answer('+i+')"><div class="opt-label" id="optL'+i+'">'+labels[i]+'</div><div class="opt-text">'+q.options[i]+'</div>'+spkOpt+'<div class="opt-icon" id="optI'+i+'"></div></div>'}
 if(q.hint&&S.hints>0){h+='<div style="text-align:center;margin-top:8px" id="hintBtn"><span style="cursor:pointer;color:#fcd34d;font-size:14px;font-weight:700;background:rgba(212,168,74,.12);padding:6px 16px;border-radius:20px;border:1px solid rgba(212,168,74,.3)" onclick="useHint()">💡 تلميح ('+S.hints+')</span></div>'}
 h+='<div id="hintBox"></div><div id="feedbackBox"></div>';
 h+='<div class="stats-row"><div class="stat-chip" style="background:rgba(74,222,128,.15);color:#6ee7a0">✅ '+S.score+'</div><div class="stat-chip" style="background:rgba(248,113,113,.15);color:#fca5a5">❌ '+(S.qi-S.score)+'</div><div class="stat-chip" style="background:rgba(212,168,74,.1);color:var(--gold)">💡 '+S.hints+'</div></div>';
